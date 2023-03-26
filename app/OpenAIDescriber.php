@@ -31,7 +31,7 @@ class OpenAIDescriber
                 ],
             ]);
         } catch (\Exception $e) {
-            throw new \Exception("Failed to describe file: {$file}");
+            throw new \Exception("Failed to describe file: {$file}, {$e->getMessage()}");
         }
 
         $description = $response->choices[0]->message->content;

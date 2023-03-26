@@ -1,7 +1,5 @@
 <?php
 
-// GeneratePromptCommand.php
-
 namespace App\Commands;
 
 use App\DescriptionStorage;
@@ -20,24 +18,28 @@ class GeneratePromptCommand extends Command
 
     public function handle()
     {
-        $projectDirectory = '/Users/jorisschelfhout/projects/project-prompt-generator';
+        $projectDirectory = getcwd();
+        $project = DB::table('projects')->where('path', $projectDirectory)->first();
 
-        $totalDescriptionLength = 0;
-        $totalDescriptionsRetrieved = 0;
+        if (! $project) {
+            $projectId = DB::table('projects')->insertGetId(['path' => $projectDirectory]);
+        } else {
+            $projectId = $project->id;
+        }
 
-        // Instantiate the new classes
         $fileAnalyzer = new FileAnalyzer($projectDirectory);
         $openAIDescriber = new OpenAIDescriber(config('openai.api_key'));
         $descriptionStorage = new DescriptionStorage();
+
         style('panel')->apply('py-0.5');
         render('<div class="panel"><b>🚀 Laravel Project Prompt Generator</b></div>');
 
-        // Step 1: Determine which files should be described
         $filesToDescribe = $fileAnalyzer->getFilesToDescribe();
-
-        // Step 2: Describe the remaining files
         $filesInDatabase = $descriptionStorage->getFilePathsInDatabase();
         $remainingFiles = array_diff($filesToDescribe, $filesInDatabase);
+
+        $totalDescriptionLength = 0;
+        $totalDescriptionsRetrieved = 0;
 
         foreach ($remainingFiles as $file) {
             $fileContents = file_get_contents($file);
@@ -51,7 +53,7 @@ class GeneratePromptCommand extends Command
             $totalDescriptionLength += $descriptionLength;
             $totalDescriptionsRetrieved++;
 
-            $descriptionStorage->saveOrUpdateDescription($file, $description);
+            $descriptionStorage->saveOrUpdateDescription($projectId, $file, $description);
 
             render("
                 <div class=\"panel\">
@@ -73,18 +75,5 @@ class GeneratePromptCommand extends Command
         $this->info('🎉 Laravel project prompt generation completed!');
         $this->info("Total amount of characters in all descriptions: {$totalDescriptionLength}");
         $this->info("Total amount of descriptions retrieved: {$totalDescriptionsRetrieved}");
-        // Get all file_description records and glue them together
-        $descriptions = $descriptionStorage->getFileDescriptions();
-        $prompt = $descriptions->map(function ($description) {
-            return $description->description;
-        })->implode('');
-
-        DB::table('project_prompts')->updateOrInsert(
-            ['prompt' => $projectDirectory],
-            ['generated_code' => $prompt]
-        );
-
-        $this->info('Prompt for: '.$projectDirectory);
-        $this->info($prompt);
     }
 }
