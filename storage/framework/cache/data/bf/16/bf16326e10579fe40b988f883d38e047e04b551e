@@ -1,0 +1,4 @@
+9999999999s:263:"Domain logic for GitIdentity model:
+- Represents a Git identity used to make commits to a repository.
+- Belongs to a membership and team, both of which are other models.
+- Has traits for activity and commits, meaning it can be associated with those types of data.";

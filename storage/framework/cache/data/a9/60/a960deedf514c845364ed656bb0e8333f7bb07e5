@@ -1,0 +1,10 @@
+9999999999s:216:"Methods/Functions used:
+- namespace 
+- use 
+- class declaration 
+- use of traits 
+- protected variables 
+- casting variables 
+- public functions 
+- function return types 
+- Eloquent relationships (belongsTo, hasMany)";

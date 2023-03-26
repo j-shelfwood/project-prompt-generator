@@ -1,0 +1,9 @@
+9999999999s:1590:"## Methods/functions used:
+- use: This is a PHP keyword used to import/inherit traits or namespaces.
+- namespace: This is a PHP keyword used to declare the namespace of the current file. This helps to avoid naming collisions with other classes or functions in the application.
+- extend: This is a PHP keyword used to inherit the properties and methods of a parent class. However, this is not used in this file because the class Customer does not inherit anything.
+- implements: This is a PHP keyword used to indicate that a class implements a particular interface. However, this is not used in this file because the class Customer does not implement any interface.
+- use: This is a Laravel import statement used to import classes that are defined in other files in the application. In this case, the following classes are imported: HasFactory, HasActivity, Model and Notifiable.
+- public function (): This is a PHP syntax used to define a method of a class. In this case, the method is called 'teams' and it returns a collection of team objects that belongs to the customer. This method uses Laravel's Eloquent ORM to define the relationship between the Customer model and the Team model.
+- return: This is a PHP keyword used to return a value from a function. In this file, the teams() function returns a collection of team objects that belongs to the customer.
+- $this->hasMany(Team::class): This is a Laravel Eloquent ORM method used to define a one-to-many relationship between the Customer model and the Team model. It returns a collection of team objects that belongs to the customer.";

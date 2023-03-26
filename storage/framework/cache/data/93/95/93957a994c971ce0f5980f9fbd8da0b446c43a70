@@ -1,0 +1,1 @@
+9999999999s:311:"This code defines the web routes for the application, including routes for authentication, team management, downloading repositories, and displaying documentation and leaderboards. It also includes middleware for authentication and authorization, and uses the Laravel framework to handle requests and responses.";
