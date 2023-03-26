@@ -40,4 +40,25 @@ class DescriptionStorage
 
         return $files === 0;
     }
+
+    public static function getRawCode($projectId)
+    {
+        $files = DB::table('files')->where('project_id', $project->id)->get()->map(function ($file) {
+            return [
+                'content' => file_get_contents($file->path),
+                'path' => $file->path,
+            ];
+        })->toArray();
+
+        $rawCode = '';
+
+        foreach ($files as $file) {
+            $rawCode .= "[{$file['path']}]=>{$file['content']}";
+        }
+
+        // Remove newlines
+        $rawCode = preg_replace('/\s+/', ' ', $rawCode);
+
+        return $rawCode;
+    }
 }

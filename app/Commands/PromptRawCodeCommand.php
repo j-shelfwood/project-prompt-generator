@@ -2,6 +2,7 @@
 
 namespace App\Commands;
 
+use App\DescriptionStorage;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
@@ -23,18 +24,7 @@ class PromptRawCodeCommand extends Command
             return;
         }
 
-        $fileDescriptions = DB::table('files')->where('project_id', $project->id)->get()->map(function ($file) {
-            return file_get_contents($file->path);
-        })->toArray();
-
-        $rawCode = '';
-
-        foreach ($fileDescriptions as $fileDescription) {
-            $rawCode .= $fileDescription;
-        }
-
-        // Remove newlines
-        $rawCode = preg_replace('/\s+/', ' ', $rawCode);
+        $rawCode = DescriptionStorage::getRawCode($project->id);
 
         $this->info('Raw code without newlines for the current project:');
         $this->info($rawCode);

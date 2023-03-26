@@ -38,4 +38,20 @@ class OpenAIDescriber
 
         return $description;
     }
+
+    public function getProjectDescription($prompt)
+    {
+        try {
+            $response = $this->client->chat()->create([
+                'model' => config('openai.model_used'),
+                'messages' => [
+                    ['role' => 'user', 'content' => $prompt],
+                ],
+            ]);
+        } catch (\Exception $e) {
+            throw new \Exception("Failed to get project description: {$e->getMessage()}");
+        }
+
+        return $response;
+    }
 }
