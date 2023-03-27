@@ -1,36 +1,108 @@
 #!/bin/bash
 
-# 1. Add content_hash column to files table
-php prompt make:migration add_content_hash_to_files_table --table=files
+# Create necessary directories
+mkdir -p app/Handlers
+mkdir -p tests/Unit/Handlers
 
-# 2. Update DescriptionStorage to save or update the content hash along with the file description
-sed -i '' 's/public function saveOrUpdateDescription(/public function saveOrUpdateDescriptionWithHash(/g' app/DescriptionStorage.php
-sed -i '' 's/$description)/$description, $contentHash)/g' app/DescriptionStorage.php
-cat <<'EOF' >> app/DescriptionStorage.php
-public function saveOrUpdateDescription($projectId, $filePath, $description)
+# Create the necessary files
+touch app/OpenAIDescriber.php
+touch app/Handlers/FileHandlerInterface.php
+touch app/Handlers/AbstractFileHandler.php
+touch app/Handlers/RouteFileHandler.php
+touch app/Handlers/PackageFileHandler.php
+touch app/Handlers/ConfigFileHandler.php
+touch tests/Unit/Handlers/RouteFileHandlerTest.php
+touch tests/Unit/Handlers/PackageFileHandlerTest.php
+touch tests/Unit/Handlers/ConfigFileHandlerTest.php
+
+# Write content to files
+cat << 'EOT' > app/OpenAIDescriber.php
+<?php
+
+namespace App;
+
+use App\Handlers\AbstractFileHandler;
+
+class OpenAIDescriber
 {
-    $contentHash = $this->getContentHash($filePath);
-    $this->saveOrUpdateDescriptionWithHash($projectId, $filePath, $description, $contentHash);
+    public function describe(AbstractFileHandler $handler): string
+    {
+        return $handler->generateDescription();
+    }
 }
+EOT
 
-private function getContentHash($filePath)
+cat << 'EOT' > app/Handlers/FileHandlerInterface.php
+<?php
+
+namespace App\Handlers;
+
+interface FileHandlerInterface
 {
-    return md5_file($filePath);
+    public function generateDescription(): string;
 }
-EOF
+EOT
 
-# 3. Modify GeneratePromptCommand to check for content changes before proceeding
-sed -i '' 's/$remainingFiles as $file) {/$remainingFiles as $file) {\n            $fileContentHash = $descriptionStorage->getFileContentHash($file);\n            $currentContentHash = md5_file($file);\n            if ($fileContentHash === $currentContentHash) {\n                continue;\n            }/g' app/Commands/GeneratePromptCommand.php
-cat <<'EOF' >> app/DescriptionStorage.php
-public function getFileContentHash($filePath)
+cat << 'EOT' > app/Handlers/AbstractFileHandler.php
+<?php
+
+namespace App\Handlers;
+
+abstract class AbstractFileHandler implements FileHandlerInterface
 {
-    $file = DB::table('files')->where('path', $filePath)->first();
-    return $file ? $file->content_hash : null;
+    protected string $filepath;
+
+    public function __construct(string $filepath)
+    {
+        $this->filepath = $filepath;
+    }
 }
-EOF
+EOT
 
-# 4. Add a helper function to compute the content hash of a given file
-sed -i '' 's/protected $directory;/protected $directory;\n\n    private function getContentHash($fileContents)\n    {\n        return md5($fileContents);\n    }\n/g' app/FileAnalyzer.php
-sed -i '' 's/$fileContents);/$fileContents), $this->getContentHash($fileContents));/g' app/OpenAIDescriber.php
+cat << 'EOT' > app/Handlers/RouteFileHandler.php
+<?php
 
-echo "Changes have been made successfully."
+namespace App\Handlers;
+
+class RouteFileHandler extends AbstractFileHandler
+{
+    public function generateDescription(): string
+    {
+        // Your implementation to describe route files
+    }
+}
+EOT
+
+cat << 'EOT' > app/Handlers/PackageFileHandler.php
+<?php
+
+namespace App\Handlers;
+
+class PackageFileHandler extends AbstractFileHandler
+{
+    public function generateDescription(): string
+    {
+        // Your implementation to describe package files
+    }
+}
+EOT
+
+cat << 'EOT' > app/Handlers/ConfigFileHandler.php
+<?php
+
+namespace App\Handlers;
+
+class ConfigFileHandler extends AbstractFileHandler
+{
+    public function generateDescription(): string
+    {
+        // Your implementation to describe config files
+    }
+}
+EOT
+
+# Suggest how to test the logic
+echo "To test the logic, create test cases in the following files:"
+echo "- tests/Unit/Handlers/RouteFileHandlerTest.php"
+echo "- tests/Unit/Handlers/PackageFileHandlerTest.php"
+echo "- tests/Unit/Handlers/ConfigFileHandlerTest.php"
