@@ -6,12 +6,12 @@ use Illuminate\Support\Facades\DB;
 
 class DescriptionStorage
 {
-    public function saveOrUpdateDescription($projectId, $filePath, $description)
+    public function saveOrUpdateDescription($projectId, $filePath, $description, $contentHash)
     {
         $projectId = DB::table('projects')->where('id', $projectId)->first()->id;
 
         DB::table('files')->updateOrInsert(
-            ['path' => $filePath],
+            ['path' => $filePath, 'content_hash' => $contentHash],
             ['project_id' => $projectId, 'description' => $description]
         );
     }
@@ -43,7 +43,7 @@ class DescriptionStorage
 
     public static function getRawCode($projectId)
     {
-        $files = DB::table('files')->where('project_id', $project->id)->get()->map(function ($file) {
+        $files = DB::table('files')->where('project_id', $projectId)->get()->map(function ($file) {
             return [
                 'content' => file_get_contents($file->path),
                 'path' => $file->path,
@@ -60,5 +60,17 @@ class DescriptionStorage
         $rawCode = preg_replace('/\s+/', ' ', $rawCode);
 
         return $rawCode;
+    }
+
+    private function getContentHash($filePath)
+    {
+        return md5_file($filePath);
+    }
+
+    public function getFileContentHash($filePath)
+    {
+        $file = DB::table('files')->where('path', $filePath)->first();
+
+        return $file ? $file->content_hash : null;
     }
 }

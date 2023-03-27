@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('project_id');
             $table->string('path')->unique();
+            $table->string('content_hash')->nullable();
             $table->text('description')->nullable();
 
             $table->foreign('project_id')->references('id')->on('projects')->onDelete('cascade');

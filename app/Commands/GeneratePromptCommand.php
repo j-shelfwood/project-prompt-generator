@@ -42,6 +42,11 @@ class GeneratePromptCommand extends Command
         $totalDescriptionsRetrieved = 0;
 
         foreach ($remainingFiles as $file) {
+            $fileContentHash = $descriptionStorage->getFileContentHash($file);
+            $currentContentHash = md5_file($file);
+            if ($fileContentHash === $currentContentHash) {
+                continue;
+            }
             $fileContents = file_get_contents($file);
             $start_time = microtime(true);
 
@@ -53,7 +58,7 @@ class GeneratePromptCommand extends Command
             $totalDescriptionLength += $descriptionLength;
             $totalDescriptionsRetrieved++;
 
-            $descriptionStorage->saveOrUpdateDescription($projectId, $file, $description);
+            $descriptionStorage->saveOrUpdateDescription($projectId, $file, $description, $currentContentHash);
 
             render("
                 <div class=\"panel\">
