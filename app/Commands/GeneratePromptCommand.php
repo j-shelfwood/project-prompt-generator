@@ -35,22 +35,22 @@ class GeneratePromptCommand extends Command
         render('<div class="panel"><b>🚀 Laravel Project Prompt Generator</b></div>');
 
         $filesToDescribe = $fileAnalyzer->getFilesToDescribe();
-        $filesInDatabase = $descriptionStorage->getFilePathsInDatabase();
-        $remainingFiles = array_diff($filesToDescribe, $filesInDatabase);
 
         $totalDescriptionLength = 0;
         $totalDescriptionsRetrieved = 0;
 
-        foreach ($remainingFiles as $file) {
+        foreach ($filesToDescribe as $file) {
+            $currentContents = file_get_contents($file);
+            $currentContentHash = md5($currentContents);
             $fileContentHash = $descriptionStorage->getFileContentHash($file);
-            $currentContentHash = md5_file($file);
+
             if ($fileContentHash === $currentContentHash) {
                 continue;
             }
-            $fileContents = file_get_contents($file);
+
             $start_time = microtime(true);
 
-            $description = $openAIDescriber->describeFile($file, $fileContents);
+            $description = $openAIDescriber->describeFile($file, $currentContents);
 
             $end_time = microtime(true);
             $response_time = round($end_time - $start_time, 2);

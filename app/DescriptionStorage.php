@@ -11,8 +11,8 @@ class DescriptionStorage
         $projectId = DB::table('projects')->where('id', $projectId)->first()->id;
 
         DB::table('files')->updateOrInsert(
-            ['path' => $filePath, 'content_hash' => $contentHash],
-            ['project_id' => $projectId, 'description' => $description]
+            ['path' => $filePath],
+            ['project_id' => $projectId, 'description' => $description, 'content_hash' => $contentHash]
         );
     }
 
@@ -60,11 +60,6 @@ class DescriptionStorage
         $rawCode = preg_replace('/\s+/', ' ', $rawCode);
 
         return $rawCode;
-    }
-
-    private function getContentHash($filePath)
-    {
-        return md5_file($filePath);
     }
 
     public function getFileContentHash($filePath)
