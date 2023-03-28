@@ -1,108 +1,24 @@
 #!/bin/bash
 
-# Create necessary directories
-mkdir -p app/Handlers
-mkdir -p tests/Unit/Handlers
+# Ref #1: Rename OpenAIDescriber.php to Describer.php
+mv app/OpenAIDescriber.php app/Describer.php
 
-# Create the necessary files
-touch app/OpenAIDescriber.php
-touch app/Handlers/FileHandlerInterface.php
-touch app/Handlers/AbstractFileHandler.php
-touch app/Handlers/RouteFileHandler.php
-touch app/Handlers/PackageFileHandler.php
-touch app/Handlers/ConfigFileHandler.php
-touch tests/Unit/Handlers/RouteFileHandlerTest.php
-touch tests/Unit/Handlers/PackageFileHandlerTest.php
-touch tests/Unit/Handlers/ConfigFileHandlerTest.php
+# Ref #2: Update the namespace in Describer.php
+sed -i '' 's/namespace App;/namespace App;/' app/Describer.php
 
-# Write content to files
-cat << 'EOT' > app/OpenAIDescriber.php
-<?php
+# Ref #3: Refactor the describe method in the new Describer class
+cat <<EOT >> app/Describer.php
+public function describeFile(\$file, \$contents): string {
+    \$handler = \$this->determineHandler(\$file);
+    return \$handler->generateDescription(\$contents);
+}
 
-namespace App;
-
-use App\Handlers\AbstractFileHandler;
-
-class OpenAIDescriber
-{
-    public function describe(AbstractFileHandler $handler): string
-    {
-        return $handler->generateDescription();
-    }
+private function determineHandler(\$file): AbstractFileHandler {
+    // Determine the appropriate handler based on the file type or other conditions
+    // For example, if the file is a PHP file, use a PHPFileHandler class (not provided)
+    // return new PHPFileHandler();
 }
 EOT
 
-cat << 'EOT' > app/Handlers/FileHandlerInterface.php
-<?php
-
-namespace App\Handlers;
-
-interface FileHandlerInterface
-{
-    public function generateDescription(): string;
-}
-EOT
-
-cat << 'EOT' > app/Handlers/AbstractFileHandler.php
-<?php
-
-namespace App\Handlers;
-
-abstract class AbstractFileHandler implements FileHandlerInterface
-{
-    protected string $filepath;
-
-    public function __construct(string $filepath)
-    {
-        $this->filepath = $filepath;
-    }
-}
-EOT
-
-cat << 'EOT' > app/Handlers/RouteFileHandler.php
-<?php
-
-namespace App\Handlers;
-
-class RouteFileHandler extends AbstractFileHandler
-{
-    public function generateDescription(): string
-    {
-        // Your implementation to describe route files
-    }
-}
-EOT
-
-cat << 'EOT' > app/Handlers/PackageFileHandler.php
-<?php
-
-namespace App\Handlers;
-
-class PackageFileHandler extends AbstractFileHandler
-{
-    public function generateDescription(): string
-    {
-        // Your implementation to describe package files
-    }
-}
-EOT
-
-cat << 'EOT' > app/Handlers/ConfigFileHandler.php
-<?php
-
-namespace App\Handlers;
-
-class ConfigFileHandler extends AbstractFileHandler
-{
-    public function generateDescription(): string
-    {
-        // Your implementation to describe config files
-    }
-}
-EOT
-
-# Suggest how to test the logic
-echo "To test the logic, create test cases in the following files:"
-echo "- tests/Unit/Handlers/RouteFileHandlerTest.php"
-echo "- tests/Unit/Handlers/PackageFileHandlerTest.php"
-echo "- tests/Unit/Handlers/ConfigFileHandlerTest.php"
+# Ref #4: Update import and usage of the OpenAIDescriber class
+sed -i '' 's/OpenAIDescriber/Describer/g' app/Commands/GeneratePromptCommand.php

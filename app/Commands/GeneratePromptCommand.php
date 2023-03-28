@@ -4,7 +4,7 @@ namespace App\Commands;
 
 use App\DescriptionStorage;
 use App\FileAnalyzer;
-use App\OpenAIDescriber;
+use App\Describer;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use function Termwind\render;
@@ -28,7 +28,7 @@ class GeneratePromptCommand extends Command
         }
 
         $fileAnalyzer = new FileAnalyzer($projectDirectory);
-        $openAIDescriber = new OpenAIDescriber(config('openai.api_key'));
+        $openAIDescriber = new Describer(config('openai.api_key'));
         $descriptionStorage = new DescriptionStorage();
 
         style('panel')->apply('py-0.5');
