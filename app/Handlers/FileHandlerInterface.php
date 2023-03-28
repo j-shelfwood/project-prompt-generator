@@ -4,5 +4,5 @@ namespace App\Handlers;
 
 interface FileHandlerInterface
 {
-    public function generateDescription(): string;
+    public function buildPrompt(): string;
 }

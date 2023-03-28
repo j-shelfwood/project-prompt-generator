@@ -4,7 +4,7 @@ namespace App\Handlers;
 
 class ConfigFileHandler extends AbstractFileHandler
 {
-    public function generateDescription(): string
+    public function buildPrompt(): string
     {
         // Your implementation to describe config files
     }

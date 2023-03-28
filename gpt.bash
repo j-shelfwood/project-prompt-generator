@@ -10,7 +10,7 @@ sed -i '' 's/namespace App;/namespace App;/' app/Describer.php
 cat <<EOT >> app/Describer.php
 public function describeFile(\$file, \$contents): string {
     \$handler = \$this->determineHandler(\$file);
-    return \$handler->generateDescription(\$contents);
+    return \$handler->buildPrompt(\$contents);
 }
 
 private function determineHandler(\$file): AbstractFileHandler {

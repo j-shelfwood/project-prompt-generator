@@ -1,1 +1,0 @@
-9999999999s:305:"The domain logic of the Edition model includes defining relationships with Team and Membership models, casting attributes to specific data types, defining a mutator to calculate the end date based on the start date, and providing methods to get the status update deadline and retrieve the current edition.";
