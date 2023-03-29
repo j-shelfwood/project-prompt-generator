@@ -14,7 +14,7 @@ class PromptRawCodeCommand extends Command
 
     public function handle()
     {
-        $projectDirectory = getcwd();
+        $projectDirectory = '/Users/jorisschelfhout/projects/abboku';
 
         $project = DB::table('projects')->where('path', $projectDirectory)->first();
 
