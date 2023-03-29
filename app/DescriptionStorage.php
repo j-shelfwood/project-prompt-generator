@@ -43,10 +43,13 @@ class DescriptionStorage
 
     public static function getRawCode($projectId)
     {
-        $files = DB::table('files')->where('project_id', $projectId)->get()->map(function ($file) {
+        $project = DB::table('projects')->where('id', $projectId)->first();
+        $files = collect(
+            (new FileAnalyzer($project->path))->getFilesToDescribe()
+        )->map(function ($file) {
             return [
-                'content' => file_get_contents($file->path),
-                'path' => $file->path,
+                'content' => file_get_contents($file),
+                'path' => $file,
             ];
         })->toArray();
 

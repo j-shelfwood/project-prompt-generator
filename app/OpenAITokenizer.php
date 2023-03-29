@@ -1,5 +1,7 @@
 <?php
 
+//@ignore
+
 namespace App;
 
 class OpenAITokenizer

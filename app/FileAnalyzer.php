@@ -40,6 +40,13 @@ class FileAnalyzer
         // Remove files ending in .blade.php
         $filteredFiles = collect($files)->filter(function ($file) {
             return ! Str::of($file)->contains('.blade.php');
+        });
+        // Check if the content of the file contains //@ignore or if the file is ./app/OpenAITokenizer.php
+        $filteredFiles = $filteredFiles->filter(function ($file) {
+            $ignoringFile = Str::of(file_get_contents($file))->contains('//@ignore') || $file === $this->directory.'/app/OpenAITokenizer.php';
+            echo $ignoringFile ? 'Ignoring '.$file.PHP_EOL : 'Analyzing '.$file.PHP_EOL;
+
+            return ! $ignoringFile;
         })->toArray();
 
         return $filteredFiles;
