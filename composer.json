@@ -1,35 +1,30 @@
 {
-    "name": "laravel-zero/laravel-zero",
-    "description": "The Laravel Zero Framework.",
-    "keywords": ["framework", "laravel", "laravel zero", "console", "cli"],
-    "homepage": "https://laravel-zero.com",
+    "name": "shelfwood/project-prompt-generator",
     "type": "project",
-    "license": "MIT",
-    "support": {
-        "issues": "https://github.com/laravel-zero/laravel-zero/issues",
-        "source": "https://github.com/laravel-zero/laravel-zero"
-    },
-    "authors": [
-        {
-            "name": "Nuno Maduro",
-            "email": "enunomaduro@gmail.com"
-        }
+    "description": "Generates a prompt for a given Laravel project you are viewing in the CLI",
+    "keywords": [
+        "framework",
+        "laravel",
+        "GPT"
     ],
+    "license": "MIT",
     "require": {
-        "php": "^8.1",
-        "illuminate/database": "^10.0",
-        "laravel-zero/framework": "^10.0",
-        "laravel-zero/phar-updater": "^1.3",
-        "nunomaduro/termwind": "^1.15",
-        "nyholm/psr7": "^1.5",
-        "openai-php/client": "^0.4.1",
-        "symfony/http-client": "^6.2"
+        "php": "^8.0.2",
+        "dompdf/dompdf": "^2.0",
+        "guzzlehttp/guzzle": "^7.2",
+        "laravel/framework": "^9.19",
+        "laravel/sanctum": "^3.0",
+        "laravel/tinker": "^2.7"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",
-        "laravel/pint": "^1.5",
-        "mockery/mockery": "^1.5.1",
-        "pestphp/pest": "^1.22.3"
+        "laravel/breeze": "^1.18",
+        "laravel/pint": "^1.0",
+        "laravel/sail": "^1.0.1",
+        "mockery/mockery": "^1.4.4",
+        "nunomaduro/collision": "^6.1",
+        "phpunit/phpunit": "^9.5.10",
+        "spatie/laravel-ignition": "^1.0"
     },
     "autoload": {
         "psr-4": {
@@ -43,16 +38,37 @@
             "Tests\\": "tests/"
         }
     },
+    "scripts": {
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover --ansi"
+        ],
+        "post-update-cmd": [
+            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+        ],
+        "post-root-package-install": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+        ],
+        "post-create-project-cmd": [
+            "@php artisan key:generate --ansi"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "dont-discover": []
+        }
+    },
     "config": {
+        "optimize-autoloader": true,
         "preferred-install": "dist",
         "sort-packages": true,
-        "optimize-autoloader": true,
         "allow-plugins": {
-            "pestphp/pest-plugin": true,
-            "php-http/discovery": true
+            "pestphp/pest-plugin": true
         }
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
-    "bin": ["prompt"]
+    "bin": [
+        "builds/prompt"
+    ]
 }
