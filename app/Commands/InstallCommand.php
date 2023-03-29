@@ -50,8 +50,8 @@ class InstallCommand extends Command
 
             // Save the API key to the .env file
             file_put_contents('.env', preg_replace(
-                '/API_KEY=.*/',
-                'API_KEY='.$apiKey,
+                '/OPENAI_API_KEY=.*/',
+                'OPENAI_API_KEY='.$apiKey,
                 file_get_contents('.env')
             ));
         });
