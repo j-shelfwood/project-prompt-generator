@@ -12,8 +12,12 @@ patch_version="${version_parts[2]}"
 # Ask the user for the version update type
 echo "Current version: $current_version"
 PS3="Select version update type: "
-select opt in "Minor Version" "Subversion"; do
+select opt in "Main Version" "Minor Version" "Subversion"; do
   case $opt in
+    "Main Version")
+      version_update_type=$opt
+      break
+      ;;
     "Minor Version")
       version_update_type=$opt
       break
@@ -27,7 +31,9 @@ done
 
 # Calculate the new version
 new_version=""
-if [ "$version_update_type" = "Minor Version" ]; then
+if [ "$version_update_type" = "Main Version" ]; then
+  new_version="$((major_version + 1)).0.0"
+elif [ "$version_update_type" = "Minor Version" ]; then
   new_version="$major_version.$minor_version.$((patch_version + 1))"
 else
   new_version="$major_version.$((minor_version + 1)).0"
@@ -35,7 +41,7 @@ fi
 
 # Generate a new build using the new version
 echo "Building new version: $new_version"
-php prompt app:build --version="$new_version"
+php prompt app:build -v "$new_version"
 
 # Commit the changes and create a git tag
 git add .

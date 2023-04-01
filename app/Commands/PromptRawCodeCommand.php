@@ -3,6 +3,7 @@
 namespace App\Commands;
 
 use App\DescriptionStorage;
+use App\OpenAITokenizer;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
@@ -14,7 +15,7 @@ class PromptRawCodeCommand extends Command
 
     public function handle()
     {
-        $projectDirectory = '/Users/jorisschelfhout/projects/abboku';
+        $projectDirectory = getcwd();
 
         $project = DB::table('projects')->where('path', $projectDirectory)->first();
 
@@ -26,7 +27,8 @@ class PromptRawCodeCommand extends Command
 
         $rawCode = DescriptionStorage::getRawCode($project->id);
 
-        $this->info('Raw code without newlines for the current project:');
+        // Count the number of tokens with the OpenAITokenizer
+        $count = OpenAITokenizer::count($rawCode);
         $this->info($rawCode);
     }
 }

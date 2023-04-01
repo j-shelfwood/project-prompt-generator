@@ -6,14 +6,36 @@ class PHPFileHandler extends AbstractFileHandler
 {
     public function buildPrompt(): string
     {
-        // Your implementation to describe PHP files and return a text prompt to send to openAI
-        // Strip ALL newlines from content
-        $content = preg_replace('/\s+/', '', $this->content);
-        // Remove opening <?php tag
-        $content = preg_replace('/^<\?php/', '', $content);
-        // Remove newline characters and escape single quotes
-        $content = str_replace(["\r", "\n", "'"], ['', '', "\'"], $content);
+        $content = $this->strippedContent();
 
-        return "[INSTRUCTIONS]Create a concise description of a Laravel project's PHP class, focusing on the domain logic and unique or custom methods relevant to the class's functionality, while avoiding explanations of default Laravel functionality. Use the provided format and strictly adhere to it for the response: file_path|namespace|classname|extends:parent_class|uses:trait1,trait2,external_class1|property1:type1|property2:type2|method1:returntype1(arg1:type1,arg2:type2)|method2:returntype2(arg1:type1)|notes:[note1;note2;...][FILE_TO_DESCRIBE]{$content}";
+        return 'Convert the given PHP file to a single line compressed representation using the following format:
+                - Separate elements with a vertical bar (|)
+                - Use the following abbreviations:
+                - src for source
+                - Ent for Entities
+                - e for extends
+                - u for uses
+                - n for notes
+                - Remove colons where they dont improve clarity (e.g., properties and method arguments)
+                - Combine related information (e.g., properties with similar types)
+                - Use custom shorthand notations for frequently used patterns (e.g., "CRUD" for a typical set of Create, Read, Update, and Delete methods)
+                - Include function implementations as part of the compressed representation. Enclose the function code within curly braces ({})
+
+                Example:
+                - Original PHP file:
+                namespace App\Entities;
+                use DateTime;
+                class Person extends Model {
+                    public $name;
+                    public $age;
+                    public function greet() { return "Hello, "" . $this->name; }
+                    public function setAge($age) { $this->age = $age; }
+                }
+                Note: Age should be between 0 and 120. Name should be unique.
+
+                - Compressed representation:
+                src/Ent/Person.php|App\Ent|Person|eModel|uDateTime|namestr|ageint|greet{ return "Hello, " . $this->name; }()|setAge{ $this->age = $age; }(ageint)|n[Age 0-120;Name unique]|...
+
+                Please convert the provided PHP file using this format and return the compressed representation:'.$content;
     }
 }

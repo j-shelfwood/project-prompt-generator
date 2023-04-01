@@ -20,6 +20,14 @@ class GeneratePromptCommand extends Command
     public function handle()
     {
         $projectDirectory = getcwd();
+        $descriptionStorage = new DescriptionStorage();
+
+        if (! $descriptionStorage->isProjectDescribed($projectDirectory)) {
+            $this->error('Not all files have been described yet.');
+
+            return;
+        }
+
         $project = DB::table('projects')->where('path', $projectDirectory)->first();
 
         if (! $project) {
