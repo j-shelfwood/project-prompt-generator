@@ -4,7 +4,6 @@ namespace App\Commands;
 
 use Illuminate\Console\Scheduling\Schedule;
 use LaravelZero\Framework\Commands\Command;
-use Phar;
 
 class InstallCommand extends Command
 {
@@ -20,7 +19,7 @@ class InstallCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Prepare and migrate the SQLite database in the globally installed executable folder';
+    protected $description = 'Prepare and migrate the SQLite database in the application data folder';
 
     /**
      * Execute the console command.
@@ -29,21 +28,28 @@ class InstallCommand extends Command
      */
     public function handle()
     {
-        $executablePath = Phar::running() ? dirname(Phar::running(false)) : realpath(__DIR__.'/../../../');
+        $appDataPath = getenv('HOME').'/.project-prompt-generator';
+        if (! is_dir($appDataPath)) {
+            mkdir($appDataPath, 0755, true);
+        }
+        $this->info("Application data path: {$appDataPath}");
 
-        $this->task('Creating .env file...', function () use ($executablePath) {
+        $this->task('Creating .env file...', function () use ($appDataPath) {
             $apiKey = $this->askForApiKey();
-            $env = $executablePath.'/.env';
-            $database = $executablePath.'/database.sqlite';
+            $env = $appDataPath.'/.env';
+            $database = $appDataPath.'/database.sqlite';
+            $this->info("Environment file path: {$env}");
+            $this->info("Database file path: {$database}");
             touch($env);
             // Setup the keys
             file_put_contents($env, 'OPENAI_API_KEY='.$apiKey.PHP_EOL);
-            file_put_contents($env, 'DB_DATABASE=.'.$database.PHP_EOL, FILE_APPEND);
+            file_put_contents($env, 'DB_DATABASE='.$database.PHP_EOL, FILE_APPEND);
         });
 
         // Touch the database file
-        $this->task('Touching the database file...', function () use ($executablePath) {
-            $database = $executablePath.'/database.sqlite';
+        $this->task('Touching the database file...', function () use ($appDataPath) {
+            $database = $appDataPath.'/database.sqlite';
+            $this->info("Touching database file at: {$database}");
 
             touch($database);
 
