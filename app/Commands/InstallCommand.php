@@ -4,6 +4,7 @@ namespace App\Commands;
 
 use Illuminate\Console\Scheduling\Schedule;
 use LaravelZero\Framework\Commands\Command;
+use Phar;
 
 class InstallCommand extends Command
 {
@@ -19,7 +20,7 @@ class InstallCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Prepare and migrate the SQLite database in the user\'s home folder';
+    protected $description = 'Prepare and migrate the SQLite database in the globally installed executable folder';
 
     /**
      * Execute the console command.
@@ -28,47 +29,29 @@ class InstallCommand extends Command
      */
     public function handle()
     {
-        // Create a project-prompt-generator directory in the user's home folder
-        $this->task('Creating project-prompt-generator directory in the user\'s home folder', function () {
-            $home = $_SERVER['HOME'];
-            $path = $home.'/project-prompt-generator';
-            if (! file_exists($path)) {
-                mkdir($path, 0777, true);
-            }
+        $executablePath = Phar::running() ? dirname(Phar::running(false)) : realpath(__DIR__.'/../../../');
 
-            return true;
-        });
-
-        $this->task('Creating .env file', function () {
+        $this->task('Creating .env file...', function () use ($executablePath) {
             $apiKey = $this->askForApiKey();
-            $home = $_SERVER['HOME'];
-            $path = $home.'/project-prompt-generator/.env';
-
-            if (! file_exists($path)) {
-                touch($path);
-            }
-
-            // Save the API key to the .env file
-            file_put_contents('.env', preg_replace(
-                '/OPENAI_API_KEY=.*/',
-                'OPENAI_API_KEY='.$apiKey,
-                file_get_contents('.env')
-            ));
+            $env = $executablePath.'/.env';
+            $database = $executablePath.'/database.sqlite';
+            touch($env);
+            // Setup the keys
+            file_put_contents($env, 'OPENAI_API_KEY='.$apiKey.PHP_EOL);
+            file_put_contents($env, 'DB_DATABASE=.'.$database.PHP_EOL, FILE_APPEND);
         });
 
         // Touch the database file
-        $this->task('Touching the database file', function () {
-            $home = $_SERVER['HOME'];
-            $path = $home.'/project-prompt-generator/database.sqlite';
-            if (! file_exists($path)) {
-                touch($path);
-            }
+        $this->task('Touching the database file...', function () use ($executablePath) {
+            $database = $executablePath.'/database.sqlite';
+
+            touch($database);
 
             return true;
         });
 
         // Run the migrations
-        $this->task('Running the migrations', function () {
+        $this->task('Running the database migrations...', function () {
             $this->call('migrate:fresh');
         });
 

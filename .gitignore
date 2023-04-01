@@ -3,5 +3,5 @@
 /.vscode
 /.vagrant
 .phpunit.result.cache
-/database/database.sqlite
+database.sqlite
 .env

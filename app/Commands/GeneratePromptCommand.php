@@ -19,7 +19,7 @@ class GeneratePromptCommand extends Command
 
     public function handle()
     {
-        $projectDirectory = '/Users/jorisschelfhout/projects/abboku';
+        $projectDirectory = getcwd();
         $project = DB::table('projects')->where('path', $projectDirectory)->first();
 
         if (! $project) {
