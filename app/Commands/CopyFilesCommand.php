@@ -6,14 +6,14 @@ use App\FileAnalyzer;
 use Illuminate\Console\Scheduling\Schedule;
 use LaravelZero\Framework\Commands\Command;
 
-class ListProjectFilesCommand extends Command
+class CopyFilesCommand extends Command
 {
     /**
      * The signature of the command.
      *
      * @var string
      */
-    protected $signature = 'list:files';
+    protected $signature = 'copy:files';
 
     /**
      * The description of the command.

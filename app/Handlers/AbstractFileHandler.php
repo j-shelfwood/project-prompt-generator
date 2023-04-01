@@ -8,10 +8,10 @@ abstract class AbstractFileHandler implements FileHandlerInterface
 
     protected string $content;
 
-    public function __construct(string $filepath)
+    public function __construct(string $filepath, $content = null)
     {
         $this->filepath = $filepath;
-        $this->content = file_get_contents($filepath);
+        $this->content = $content ?? file_get_contents($filepath);
     }
 
     public function strippedContent(): string
@@ -19,9 +19,11 @@ abstract class AbstractFileHandler implements FileHandlerInterface
         // Remove newline characters and escape single quotes
         $content = preg_replace('/\s+/', '', $this->content);
         $content = str_replace(["\r", "\n", "'"], ['', '', "\'"], $content);
-
-        // Remove opening <?php tag
         $content = preg_replace('/^<\?php/', '', $content);
+        // remove all dollar signs
+        $content = str_replace('$', '', $content);
+        // Replace all -> by .
+        $content = str_replace('->', '.', $content);
 
         return $this->content;
     }

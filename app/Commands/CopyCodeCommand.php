@@ -7,9 +7,9 @@ use App\OpenAITokenizer;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
-class PromptRawCodeCommand extends Command
+class CopyCodeCommand extends Command
 {
-    protected $signature = 'generate:raw-code';
+    protected $signature = 'copy:code';
 
     protected $description = 'Concatenate the code from all files in the current project without newlines';
 
