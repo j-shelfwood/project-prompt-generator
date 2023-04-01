@@ -36,7 +36,6 @@ $app->singleton(
     Illuminate\Foundation\Exceptions\Handler::class
 );
 
-$app->useEnvironmentPath($_SERVER['HOME'].'/.project-prompt-generator/.env');
 /*
 |--------------------------------------------------------------------------
 | Return The Application
