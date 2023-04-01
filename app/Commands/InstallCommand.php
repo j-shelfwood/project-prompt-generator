@@ -2,80 +2,106 @@
 
 namespace App\Commands;
 
-use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\File;
 use LaravelZero\Framework\Commands\Command;
 
 class InstallCommand extends Command
 {
-    /**
-     * The signature of the command.
-     *
-     * @var string
-     */
     protected $signature = 'install';
 
-    /**
-     * The description of the command.
-     *
-     * @var string
-     */
-    protected $description = 'Prepare and migrate the SQLite database in the application data folder';
+    protected $description = 'Install the command line tool';
 
-    /**
-     * Execute the console command.
-     *
-     * @return mixed
-     */
     public function handle()
     {
-        $appDataPath = getenv('HOME').'/.project-prompt-generator';
-        if (! is_dir($appDataPath)) {
-            mkdir($appDataPath, 0755, true);
+        $baseDirectory = $this->laravel->basePath();
+
+        $this->info("📁 Base directory: {$baseDirectory}");
+
+        if ($this->checkForExistingFiles($baseDirectory)) {
+            return;
         }
-        $this->info("Application data path: {$appDataPath}");
 
-        $this->task('Creating .env file...', function () use ($appDataPath) {
-            $apiKey = $this->askForApiKey();
-            $env = $appDataPath.'/.env';
-            $database = $appDataPath.'/database.sqlite';
-            $this->info("Environment file path: {$env}");
-            $this->info("Database file path: {$database}");
-            touch($env);
-            // Setup the keys
-            file_put_contents($env, 'OPENAI_API_KEY='.$apiKey.PHP_EOL);
-            file_put_contents($env, 'DB_DATABASE='.$database.PHP_EOL, FILE_APPEND);
+        $this->createDatabase($baseDirectory);
+        $this->createEnvFile($baseDirectory);
+        $this->migrateDatabase();
+    }
+
+    protected function checkForExistingFiles(string $baseDirectory): bool
+    {
+        $databaseFile = $baseDirectory.'/database/database.sqlite';
+        $envFile = $baseDirectory.'/.env';
+
+        if (File::exists($databaseFile) || File::exists($envFile)) {
+            $choice = $this->choice('Some files already exist. Do you want to delete the files and start fresh or cancel the installation?', ['Delete and start fresh', 'Cancel'], 1);
+
+            if ($choice === 'Delete and start fresh') {
+                File::delete($databaseFile);
+                File::delete($envFile);
+            } else {
+                $this->info('Installation canceled.');
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected function createDatabase(string $baseDirectory)
+    {
+        $this->task('Creating database.sqlite file', function () use ($baseDirectory) {
+            $databaseDirectory = $baseDirectory.'/database';
+            $databaseFile = $databaseDirectory.'/database.sqlite';
+
+            $this->info("📁 Database directory: {$databaseDirectory}");
+            $this->info("📄 Database file: {$databaseFile}");
+
+            if (! File::isDirectory($databaseDirectory)) {
+                File::makeDirectory($databaseDirectory, 0755, true);
+            }
+
+            if (! File::exists($databaseFile)) {
+                File::put($databaseFile, '');
+
+                return true;
+            }
+
+            $this->info('ℹ️  database.sqlite file already exists.');
+
+            return false;
         });
+    }
 
-        // Touch the database file
-        $this->task('Touching the database file...', function () use ($appDataPath) {
-            $database = $appDataPath.'/database.sqlite';
-            $this->info("Touching database file at: {$database}");
+    protected function createEnvFile(string $baseDirectory)
+    {
+        $this->task('Creating .env file', function () use ($baseDirectory) {
+            $envFile = $baseDirectory.'/.env';
 
-            touch($database);
+            $this->info("📄 .env file: {$envFile}");
+
+            if (! File::exists($envFile)) {
+                $openAiApiKey = $this->ask('Please provide your OpenAI API key:');
+                $envContent = "OPENAI_API_KEY={$openAiApiKey}\n";
+
+                File::put($envFile, $envContent);
+
+                return true;
+            }
+
+            $this->info('ℹ️  .env file already exists.');
+
+            return false;
+        });
+    }
+
+    protected function migrateDatabase()
+    {
+        $this->task('Migrating the database', function () {
+            Artisan::call('migrate', ['--force' => true]);
+            $this->info(Artisan::output());
 
             return true;
         });
-
-        // Run the migrations
-        $this->task('Running the database migrations...', function () {
-            $this->call('migrate:fresh');
-        });
-
-        $this->info(PHP_EOL.'✅ Installation complete!');
-        $this->info('Run `php prompt generate` to get started.'.PHP_EOL);
-        $this->info('Run `php prompt generate:raw-code` to get a blob of all the crucial raw code in your project.'.PHP_EOL);
-    }
-
-    protected function askForApiKey()
-    {
-        return $this->ask('Please enter your API key:');
-    }
-
-    /**
-     * Define the command's schedule.
-     */
-    public function schedule(Schedule $schedule): void
-    {
-        // $schedule->command(static::class)->everyMinute();
     }
 }
