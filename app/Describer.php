@@ -19,7 +19,7 @@ class Describer
         $prompt = $this->determineHandler($file)
             ->buildPrompt();
 
-        return $this->chatGPT->chat($prompt)
+        return $this->chatGPT->send($prompt)
             ->messages()
             ->last()['content'];
     }

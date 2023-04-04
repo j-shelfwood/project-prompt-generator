@@ -2,6 +2,7 @@
 
 namespace App;
 
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class FileAnalyzer
@@ -13,7 +14,7 @@ class FileAnalyzer
         $this->directory = $directory;
     }
 
-    public function getFilesToDescribe()
+    public function getFilesToDescribe(): Collection
     {
         $files = [];
 
@@ -42,12 +43,10 @@ class FileAnalyzer
             return ! Str::of($file)->contains('.blade.php');
         });
         // Check if the content of the file contains //@ignore or if the file is ./app/OpenAITokenizer.php
-        $filteredFiles = $filteredFiles->filter(function ($file) {
+        return $filteredFiles->filter(function ($file) {
             $ignoringFile = Str::of(file_get_contents($file))->contains('//'.'@ignore') || $file === $this->directory.'/app/OpenAITokenizer.php';
 
             return ! $ignoringFile;
-        })->toArray();
-
-        return $filteredFiles;
+        });
     }
 }

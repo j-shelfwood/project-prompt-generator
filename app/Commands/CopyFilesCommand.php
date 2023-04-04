@@ -33,7 +33,7 @@ class CopyFilesCommand extends Command
             ->getFilesToDescribe();
 
         // Print the files as a concatenated string
-        $this->info(implode(PHP_EOL, $files));
+        $this->info(implode(PHP_EOL, $files->toArray()));
     }
 
     /**

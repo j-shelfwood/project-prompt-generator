@@ -24,7 +24,7 @@ class ChatGPT
         return $this->messages;
     }
 
-    public function chat(string $message): self
+    public function send(string $message): self
     {
         $this->messages->push([
             'role' => 'user',
@@ -36,6 +36,16 @@ class ChatGPT
         $message = $this->getChatResponse();
 
         $this->messages->push($message);
+
+        return $this;
+    }
+
+    public function system(string $message): self
+    {
+        $this->messages->push([
+            'role' => 'system',
+            'content' => $message,
+        ]);
 
         return $this;
     }
@@ -71,5 +81,10 @@ class ChatGPT
                 'content' => $response->choices[0]->message->content,
             ];
         });
+    }
+
+    public function receive(): string
+    {
+        return $this->messages->last()['content'];
     }
 }
