@@ -44,6 +44,10 @@ echo "Building new version: $new_version"
 php prompt app:build -v "$new_version" &
 wait $!
 
+# Ask the user if they want to continue with the release
+echo "New version built successfully!"
+read -p "Do you want to continue with the release? [y/n] " -n 1 -r
+
 # Commit the changes and create a git tag
 git add .
 git commit -m "Release $new_version"
