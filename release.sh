@@ -54,5 +54,12 @@ git commit -m "Release $new_version"
 git tag "$new_version"
 
 # Push the changes and the new tag to the main branch
-git push origin main
-git push origin "$new_version"
+git push origin main &
+wait $!
+git push origin "$new_version" &
+wait $!
+git push --tags &
+wait $!
+
+# Ask the user if they want to publish the release
+echo "Release pushed successfully!"
