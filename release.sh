@@ -41,7 +41,8 @@ fi
 
 # Generate a new build using the new version
 echo "Building new version: $new_version"
-php prompt app:build -v "$new_version"
+php prompt app:build -v "$new_version" &
+wait $!
 
 # Commit the changes and create a git tag
 git add .
