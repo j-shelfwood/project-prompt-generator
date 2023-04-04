@@ -24,27 +24,22 @@ class Describer
             ->last()['content'];
     }
 
-    private function determineHandler($file): AbstractFileHandler
-    {
-        // Determine the appropriate handler based on the file type or other conditions
-        // If it is a ./package.json or ./composer.json file, return a new PackageFileHandler()
-        // If it is a ./config directory, return a new ConfigFileHandler()
-        // If it is a ./database/migrations directory, return a new MigrationFileHandler()
-        // If it is any other php file return the PHPFileHandler()
+   private function determineHandler($file): AbstractFileHandler
+   {
+       $handlers = [
+           // ['pattern' => '/routes', 'handler' => RouteFileHandler::class],
+           // ['pattern' => '/package.json', 'handler' => PackageFileHandler::class],
+           // ['pattern' => '/composer.json', 'handler' => PackageFileHandler::class],
+           // ['pattern' => '/config', 'handler' => ConfigFileHandler::class],
+           // ['pattern' => '/database/migrations', 'handler' => MigrationFileHandler::class],
+       ];
 
-        // if (strpos($file, '/routes') !== false) {
-        //     return new RouteFileHandler();
-        // }
-        // if (strpos($file, '/package.json') !== false || strpos($file, '/composer.json') !== false) {
-        //     return new PackageFileHandler();
-        // }
-        // if (strpos($file, '/config') !== false) {
-        //     return new ConfigFileHandler();
-        // }
-        // if (strpos($file, '/database/migrations') !== false) {
-        //     return new MigrationFileHandler();
-        // }
+       foreach ($handlers as $handler) {
+           if (strpos($file, $handler['pattern']) !== false) {
+               return new $handler['handler']($file);
+           }
+       }
 
-        return new PHPFileHandler($file);
-    }
+       return new PHPFileHandler($file);
+   }
 }

@@ -8,8 +8,6 @@ use App\FileAnalyzer;
 use App\OpenAITokenizer;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
-use function Termwind\render;
-use function Termwind\style;
 
 class GeneratePromptCommand extends Command
 {
@@ -20,44 +18,33 @@ class GeneratePromptCommand extends Command
     public function handle()
     {
         $projectDirectory = getcwd();
-        $descriptionStorage = new DescriptionStorage();
-
-        if (! $descriptionStorage->isProjectDescribed($projectDirectory)) {
-            $this->error('Not all files have been described yet.');
-
-            return;
-        }
 
         $project = DB::table('projects')->where('path', $projectDirectory)->first();
-
-        if (! $project) {
-            $projectId = DB::table('projects')->insertGetId(['path' => $projectDirectory]);
-        } else {
-            $projectId = $project->id;
-        }
+        $projectId = $project ? $project->id : DB::table('projects')->insertGetId(['path' => $projectDirectory]);
 
         $fileAnalyzer = new FileAnalyzer($projectDirectory);
         $describer = new Describer();
         $descriptionStorage = new DescriptionStorage();
 
-        style('panel')->apply('py-0.5');
-        render('<div class="panel"><b>🚀 Laravel Project Prompt Generator</b></div>');
+        $this->renderPanel('🚀 Laravel Project Prompt Generator');
+        $this->line('');
 
-        render("<div class='panel'>📁 Project directory: {$projectDirectory}</div>");
+        $this->renderMessage('📁 Project directory: ', false);
+        $this->renderMessage("{$projectDirectory}", true);
+        $this->line('');
+
         $filesToDescribe = $fileAnalyzer->getFilesToDescribe();
 
         $totalDescriptionLength = 0;
         $totalDescriptionsRetrieved = 0;
 
         foreach ($filesToDescribe as $file) {
-            render("<div class='panel'>📄 {$file}</div>");
+            $this->renderMessage('📄 Analyzing file: ', false);
+            $this->renderMessage("{$file}", true);
+            $this->line('');
+
             $currentContents = file_get_contents($file);
             $currentContentHash = md5($currentContents);
-            // $fileContentHash = $descriptionStorage->getFileContentHash($file);
-
-            // if ($fileContentHash === $currentContentHash) {
-            //     continue;
-            // }
 
             $start_time = microtime(true);
 
@@ -71,23 +58,39 @@ class GeneratePromptCommand extends Command
 
             $descriptionStorage->saveOrUpdateDescription($projectId, $file, $description, $currentContentHash);
 
-            render("
-                <div class='panel'>
-                    <div>⏱ Response time: </div><br>
-                    <i> {$response_time} seconds</i>
-                    <br>
-                    <div>📏 Token count: </div><br>
-                    <i>{$descriptionLength} characters</i>
-                    <br>
-                    <div>💬 GPT result</div><br>
-                    <i>{$description}</i>
-                </div>
-            ");
+            $this->renderMessage("⏱ Response time: {$response_time} seconds");
+            $this->renderMessage("📏 Token count: {$descriptionLength} characters");
+            $this->renderMessage("💬 GPT result: {$description}");
+            $this->line('');
+
+            $this->line(str_repeat('-', 80));
             $this->line('');
         }
 
-        $this->info('🎉 Laravel project prompt generation completed!');
+        $this->renderPanel('🎉 Laravel project prompt generation completed!');
+        $this->line('');
         $this->info("Total amount of characters in all descriptions: {$totalDescriptionLength}");
         $this->info("Total amount of descriptions retrieved: {$totalDescriptionsRetrieved}");
+    }
+
+    private function renderMessage(string $message, bool $highlight = false): void
+    {
+        if ($highlight) {
+            $output = "\033[38;5;47m\033[48;5;235m {$message} \033[0m";
+        } else {
+            $output = $message;
+        }
+        $this->line($output);
+    }
+
+    private function renderPanel(string $message): void
+    {
+        $wrappedMessage = wordwrap($message, 76, "\n");
+        $border = "\033[38;5;47m\033[48;5;235m".str_repeat(' ', 80)."\033[0m";
+        $line = "\033[38;5;47m\033[48;5;235m ".str_repeat(' ', 2).$wrappedMessage.str_repeat(' ', 2)." \033[0m";
+
+        $this->line($border);
+        $this->line($line);
+        $this->line($border);
     }
 }
