@@ -31,11 +31,7 @@ class ChatGPT
             'content' => $message,
         ]);
 
-        $tokenCount = OpenAITokenizer::count($message);
-
-        if ($tokenCount > 4000) {
-            $message = OpenAITokenizer::truncate($message, 4000);
-        }
+        $this->trimMessagesToFit();
 
         $message = $this->getChatResponse();
 
@@ -51,12 +47,23 @@ class ChatGPT
         return $this;
     }
 
+    private function trimMessagesToFit(): void
+    {
+        $maxTokens = config('openai.max_tokens');
+        $totalTokens = OpenAITokenizer::count($this->messages);
+
+        while ($totalTokens > $maxTokens) {
+            $this->messages->shift();
+            $totalTokens = OpenAITokenizer::count($this->messages);
+        }
+    }
+
     private function getChatResponse(): array
     {
         return Cache::rememberForever(md5($this->messages->implode('content')), function () {
             $response = $this->client->chat()->create([
                 'model' => config('openai.model_used'),
-                'messages' => [$this->messages->last()],
+                'messages' => $this->messages->toArray(),
             ]);
 
             return [
