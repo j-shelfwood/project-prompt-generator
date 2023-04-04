@@ -6,7 +6,6 @@ This codebase is a command line tool for analyzing Laravel projects. The tool pr
 - Number of tokens in each file
 - Character count of each file
 - Total number of tokens and characters in the project
-- Most repeated tokens in the project
 - Concatenate code from all files in the current project without newlines
 - List all files used for context in the current working directory
 - Generate AI-readable context prompts for a Laravel project
@@ -37,7 +36,7 @@ The `install` command performs the following tasks:
 ## Commands
 - `install`: Install the command line tool
 - `generate`: Generate AI-readable descriptions of each file for a Laravel project and saves them to `database.sqlite`
-- `analyze`: Analyze the current project and display detailed information about token counts, character counts, and the most repeated tokens
+- `analyze`: Analyze the current project and display detailed information about token counts & character counts
 - `copy:code`: Concatenate code from all files in the current project without newlines
 - `copy:files`: List all files used for context in the current working directory
 
@@ -64,9 +63,9 @@ Output:
 
 ```mathematica
 
-File               Raw token count    Description token Count    Character count    Most repeated tokens
-config/app.php     120                45                          3500               ; (35x), -> (20x), [ (15x)
-routes/web.php     90                 30                          1500               -> (10x), Route (8x), use (7x)
+File               Raw token count    Description token Count    Character count
+config/app.php     120                45                          3500
+routes/web.php     90                 30                          1500
 ...
 Total token count: 1000
 Total description token count: 500
