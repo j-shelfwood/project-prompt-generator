@@ -37,6 +37,7 @@ The `install` command performs the following tasks:
 - `install`: Install the command line tool
 - `generate`: Generate AI-readable descriptions of each file for a Laravel project and saves them to `database.sqlite`
 - `analyze`: Analyze the current project and display detailed information about token counts & character counts
+- `clear`: Clear the database of all generated descriptions
 - `copy:code`: Concatenate code from all files in the current project without newlines
 - `copy:files`: List all files used for context in the current working directory
 
