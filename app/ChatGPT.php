@@ -67,13 +67,13 @@ class ChatGPT
         $totalTokens = OpenAITokenizer::count($this->messages->pluck('content')->implode(' '));
 
         while ($totalTokens > config('openai.max_tokens')) {
-            echo 'shifting messages to fit'.PHP_EOL;
+            echo '⚠️ Removing context from 1 message to abide by token limit ('.$this->messages->count().' left)'.PHP_EOL;
             // Remove the a message from the $this->messages collection and recalculate the total tokens
             $this->messages->shift();
-            echo 'shifted (items left:'.$this->messages->count().PHP_EOL;
 
             $totalTokens = OpenAITokenizer::count($this->messages);
         }
+        echo PHP_EOL.'✅ Token limit is not exceeded with '.$this->messages->count().' messages left'.PHP_EOL.PHP_EOL;
     }
 
     private function getChatResponse(): array

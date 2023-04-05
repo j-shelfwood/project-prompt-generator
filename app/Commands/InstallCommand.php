@@ -14,21 +14,31 @@ class InstallCommand extends Command
 
     public function handle()
     {
+        // If env = development show warning
+        if (env('APP_ENV') === 'development') {
+            $this->warn('⚠️  You are running the command in development mode. This is not recommended.');
+        }
+
+        // Show current config('database.connections.sqlite.database') value
+        $this->line('📄 Current database file configuration: '.config('database.connections.sqlite.database'));
+        // Show DB_DATABASE value from .env file
+        $this->line('📄 Current database file environment: '.env('DB_DATABASE'));
+
         $homeDir = getenv('HOME') ?: getenv('USERPROFILE');
         $appDir = $homeDir.DIRECTORY_SEPARATOR.'.project-prompt-generator';
 
         $this->line("📁 App directory: {$appDir}");
-        try {
+        // try {
             if ($this->checkForExistingFiles($appDir)) {
                 return;
             }
 
             $this->createDatabase($appDir);
             $this->createEnvFile($appDir);
-            $this->migrateDatabase();
-        } catch (\Exception $e) {
-            $this->error('Something went wrong, try running the command as an administrator (we have to create 2 files in your app directory)');
-        }
+            $this->migrateDatabase($appDir);
+        // } catch (\Exception $e) {
+        //     $this->error('Something went wrong, try running the command as an administrator (we have to create 2 files in your app directory)');
+        // }
     }
 
     protected function checkForExistingFiles(string $appDir): bool
@@ -88,7 +98,7 @@ class InstallCommand extends Command
 
             if (! File::exists($envFile)) {
                 $openAiApiKey = $this->ask('Please provide your OpenAI API key:');
-                $envContent = "OPENAI_API_KEY={$openAiApiKey}\n";
+                $envContent = "OPENAI_API_KEY={$openAiApiKey}\nDB_DATABASE={$appDir}/database.sqlite";
 
                 File::put($envFile, $envContent);
                 File::chmod($envFile, 0755);
@@ -102,9 +112,22 @@ class InstallCommand extends Command
         });
     }
 
-    protected function migrateDatabase()
+    protected function migrateDatabase(string $appDir)
     {
-        $this->task('Migrating the database', function () {
+        $this->task('Migrating the database', function () use ($appDir) {
+            // Show current config('database.connections.sqlite.database') value
+            $this->line('📄 Current database file configuration: '.config('database.connections.sqlite.database'));
+            // Show DB_DATABASE value from .env file
+            $this->line('📄 Current database file environment: '.env('DB_DATABASE'));
+            // Load the new .env file
+            $dotenv = \Dotenv\Dotenv::createUnsafeImmutable($appDir.DIRECTORY_SEPARATOR, '.env');
+            $dotenv->load();
+            // Update config('database.connections.sqlite.database') value
+            // config(['database.connections.sqlite.database' => env('DB_DATABASE')]);
+            // Show current config('database.connections.sqlite.database') value
+            $this->line('📄 Current database file configuration: '.config('database.connections.sqlite.database'));
+            // Show DB_DATABASE value from .env file
+            $this->line('📄 Current database file environment: '.env('DB_DATABASE'));
             Artisan::call('migrate', ['--force' => true]);
 
             return true;
