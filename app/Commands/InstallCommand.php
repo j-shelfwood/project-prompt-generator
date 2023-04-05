@@ -14,23 +14,27 @@ class InstallCommand extends Command
 
     public function handle()
     {
-        $baseDirectory = $this->laravel->basePath();
+        $homeDir = getenv('HOME') ?: getenv('USERPROFILE');
+        $appDir = $homeDir.DIRECTORY_SEPARATOR.'.project-prompt-generator';
 
-        $this->info("📁 Base directory: {$baseDirectory}");
+        $this->line("📁 App directory: {$appDir}");
+        try {
+            if ($this->checkForExistingFiles($appDir)) {
+                return;
+            }
 
-        if ($this->checkForExistingFiles($baseDirectory)) {
-            return;
+            $this->createDatabase($appDir);
+            $this->createEnvFile($appDir);
+            $this->migrateDatabase();
+        } catch (\Exception $e) {
+            $this->error('Something went wrong, try running the command as an administrator (we have to create 2 files in your app directory)');
         }
-
-        $this->createDatabase($baseDirectory);
-        $this->createEnvFile($baseDirectory);
-        $this->migrateDatabase();
     }
 
-    protected function checkForExistingFiles(string $baseDirectory): bool
+    protected function checkForExistingFiles(string $appDir): bool
     {
-        $databaseFile = $baseDirectory.'/database/database.sqlite';
-        $envFile = $baseDirectory.'/.env';
+        $databaseFile = $appDir.DIRECTORY_SEPARATOR.'database.sqlite';
+        $envFile = $appDir.DIRECTORY_SEPARATOR.'.env';
 
         if (File::exists($databaseFile) || File::exists($envFile)) {
             $choice = $this->choice('Some files already exist. Do you want to delete the files and start fresh or cancel the installation?', ['Delete and start fresh', 'Cancel'], 1);
@@ -38,58 +42,61 @@ class InstallCommand extends Command
             if ($choice === 'Delete and start fresh') {
                 File::delete($databaseFile);
                 File::delete($envFile);
+                File::deleteDirectory($appDir);
             } else {
-                $this->info('Installation canceled.');
+                $this->line('Installation canceled.');
 
                 return true;
             }
         }
 
+        // Create the app directory if it doesn't exist
+        if (! File::exists($appDir)) {
+            File::makeDirectory($appDir);
+            File::chmod($appDir, 0775);
+        }
+
         return false;
     }
 
-    protected function createDatabase(string $baseDirectory)
+    protected function createDatabase(string $appDir)
     {
-        $this->task('Creating database.sqlite file', function () use ($baseDirectory) {
-            $databaseDirectory = $baseDirectory.'/database';
-            $databaseFile = $databaseDirectory.'/database.sqlite';
+        $this->task('Creating database.sqlite file', function () use ($appDir) {
+            $databaseFile = $appDir.DIRECTORY_SEPARATOR.'database.sqlite';
 
-            $this->info("📁 Database directory: {$databaseDirectory}");
-            $this->info("📄 Database file: {$databaseFile}");
+            $this->line("📄 Database file: {$databaseFile}");
 
-            if (! File::isDirectory($databaseDirectory)) {
-                File::makeDirectory($databaseDirectory, 0755, true);
+            if (File::exists($databaseFile)) {
+                $this->line('ℹ️  database.sqlite file already exists.');
+
+                return false;
             }
 
-            if (! File::exists($databaseFile)) {
-                File::put($databaseFile, '');
+            File::put($databaseFile, '');
+            File::chmod($databaseFile, 0755);
 
-                return true;
-            }
-
-            $this->info('ℹ️  database.sqlite file already exists.');
-
-            return false;
+            return true;
         });
     }
 
-    protected function createEnvFile(string $baseDirectory)
+    protected function createEnvFile(string $appDir)
     {
-        $this->task('Creating .env file', function () use ($baseDirectory) {
-            $envFile = $baseDirectory.'/.env';
+        $this->task('Creating .env file', function () use ($appDir) {
+            $envFile = $appDir.DIRECTORY_SEPARATOR.'.env';
 
-            $this->info("📄 .env file: {$envFile}");
+            $this->line("📄 .env file: {$envFile}");
 
             if (! File::exists($envFile)) {
                 $openAiApiKey = $this->ask('Please provide your OpenAI API key:');
                 $envContent = "OPENAI_API_KEY={$openAiApiKey}\n";
 
                 File::put($envFile, $envContent);
+                File::chmod($envFile, 0755);
 
                 return true;
             }
 
-            $this->info('ℹ️  .env file already exists.');
+            $this->line('ℹ️  .env file already exists.');
 
             return false;
         });
@@ -99,7 +106,6 @@ class InstallCommand extends Command
     {
         $this->task('Migrating the database', function () {
             Artisan::call('migrate', ['--force' => true]);
-            $this->info(Artisan::output());
 
             return true;
         });

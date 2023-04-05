@@ -40,7 +40,7 @@ return [
     |
     */
 
-    'env' => 'development',
+    'env' => env('APP_ENV', 'production'),
 
     /*
     |--------------------------------------------------------------------------
@@ -68,6 +68,7 @@ return [
 
     'providers' => [
         App\Providers\AppServiceProvider::class,
+        App\Providers\EnvServiceProvider::class,
     ],
 
 ];
