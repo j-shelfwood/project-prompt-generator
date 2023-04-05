@@ -34,14 +34,15 @@ new_version=""
 if [ "$version_update_type" = "Main Version" ]; then
   new_version="$((major_version + 1)).0.0"
 elif [ "$version_update_type" = "Minor Version" ]; then
-  new_version="$major_version.$minor_version.$((patch_version + 1))"
-else
   new_version="$major_version.$((minor_version + 1)).0"
+else
+  new_version="$major_version.$minor_version.$((patch_version + 1))"
 fi
+
 
 # Generate a new build using the new version
 echo "Building new version: $new_version"
-php prompt app:build -v "$new_version" &
+php prompt app:build --build-version="$new_version" &
 wait $!
 
 # Ask the user if they want to continue with the release

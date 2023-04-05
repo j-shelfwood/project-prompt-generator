@@ -19,7 +19,6 @@
         "php": "^8.0.2",
         "illuminate/collections": "^10.0",
         "illuminate/database": "^10.0",
-        "laravel-zero/framework": "^10.0",
         "laravel-zero/phar-updater": "^1.3",
         "nunomaduro/termwind": "^1.15",
         "nyholm/psr7": "^1.5",
@@ -30,7 +29,8 @@
         "fakerphp/faker": "^1.9.1",
         "laravel/pint": "^1.5",
         "mockery/mockery": "^1.5.1",
-        "pestphp/pest": "^1.22.3"
+        "pestphp/pest": "^1.22.3",
+        "laravel-zero/framework": "^10.0"
     },
     "autoload": {
         "psr-4": {
@@ -56,6 +56,6 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "bin": [
-        "prompt"
+        "builds/prompt"
     ]
 }
