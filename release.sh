@@ -55,11 +55,11 @@ git commit -m "Release $new_version"
 git tag "$new_version"
 
 # Push the changes and the new tag to the main branch
-git push origin main &
+git push --progress origin main &
 wait $!
-git push origin "$new_version" &
+git push --progress origin "$new_version" &
 wait $!
-git push --tags &
+git push --progress --tags &
 wait $!
 
 # Ask the user if they want to publish the release
