@@ -10,7 +10,12 @@ Install the tool globally using Composer:
 composer global require shelfwood/project-prompt-generator
 ```
 
-The tool creates a database file named `database.sqlite` in the `database` directory and a `.env` file. During the `.env` creation, you will be prompted to input your OpenAI API key. The installation process also migrates the database.
+Then run the install command:
+```
+prompt install
+```
+
+The `install` command creates a database file named `database.sqlite` in the `database` directory and a `.env` file. During the `.env` creation, you will be prompted to input your OpenAI API key. The installation process also migrates the database.
 
 ## Usage
 
