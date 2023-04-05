@@ -1,53 +1,101 @@
-# Laravel CLI Tool
+# Project CLI Tool
 
-This is a command line tool written in Laravel Zero that provides various functions for analyzing and generating descriptions of files in a Laravel project. The tool uses generative AI to create prompts for use with ChatGPT and can also generate a README.md file for your project.
+This is a Laravel Zero CLI tool that uses GPT with OpenAI API to generate prompts and analyze project files. You need an OpenAI API key to use this tool.
 
 ## Installation
 
-Install the tool globally using Composer:
+To install the CLI tool globally via composer, run the following command:
 
 ```
 composer global require shelfwood/project-prompt-generator
 ```
 
-Then run the install command:
+After installation, create a new project directory, and navigate to it in your terminal. Then, run the following command:
+
 ```
 prompt install
 ```
 
-The `install` command creates a database file named `database.sqlite` in the `database` directory and a `.env` file. During the `.env` creation, you will be prompted to input your OpenAI API key. The installation process also migrates the database.
+This will install the necessary dependencies, create a database, and prompt you for a default projects to allow you to choose projects from a default directory. Handy for when you have multiple projects in a single directory that you want to analyze individually.
 
 ## Usage
 
-The tool contains several commands that can be used to analyze and generate descriptions of files in a Laravel project. Here are the available commands:
+### Analyze Project
 
-- `analyze`: Analyzes the current project and shows how many tokens each file contains, the character count of each file, and the total number of tokens and characters in the project. This command uses a progress bar during the analysis and displays the results in a table.
+To analyze the current working directory's files and display counts for tokens and descriptions, use the following command:
 
-- `clear`: Clears all file descriptions in the database, which is useful when starting over with the generate command.
+```
+prompt analyze [--remote]
+```
 
-- `copy:code`: Concatenates the code of all files in the current project, without newlines.
+The `--remote` option can be used to specify a remote directory instead of using the current working directory.
 
-- `copy:compressed`: Concatenates all the compressed file descriptions for the current project.
+### Clear Command
 
-- `copy:files`: Prints a list of files from the current working directory as a concatenated string.
+To clear all file descriptions from the database, use the following command:
 
-- `generate`: Analyzes files in a Laravel project and generates a description of each file. The descriptions are saved to a database.
+```
+project-cli clear
+```
 
-- `generate:proposal`: Accepts a description of a new feature or request and generates a proposal for it based on the files in the current directory.
+### Copy Code Command
 
-- `readme`: Generates a README.md file for the current project by scanning files for context using `FileAnalyzer`, `PHPFileHandler`, and `ChatGPT`. The generated README file has Introduction, Installation, Usage, Contributing, License, and Credits sections.
+To concatenate the code from all files in the current project without newlines and count the number of tokens, use the following command:
+
+```
+project-cli copy:files [--remote]
+```
+
+The `--remote` option can be used to specify a remote directory instead of using the current working directory.
+
+### Copy Compressed Command
+
+To concatenate all the compressed file descriptions for the current project and count the number of tokens, use the following command:
+
+```
+project-cli copy:compressed [--remote]
+```
+
+The `--remote` option can be used to specify a remote directory instead of using the current working directory.
+
+### Generate Command
+
+To generate AI-readable context prompts for a Laravel project and store them in a database, use the following command:
+
+```
+project-cli generate [--remote]
+```
+
+The `--remote` option can be used to specify a remote directory instead of using the current working directory.
+
+### Generate Proposal Command
+
+To generate a proposal based on the files in the current directory, use the following command:
+
+```
+project-cli generate:proposal [--remote]
+```
+
+The command retrieves the project directory and the project ID from the database and creates instances of `FileAnalyzer`, `Describer`, and `DescriptionStorage` to process the files in the directory and store the generated proposal. Finally, the command prompts the user to provide a description of the feature or request.
+
+### Readme Command
+
+To generate a README.md file for the current project, use the following command:
+
+```
+project-cli readme [--remote]
+```
+
+The `--remote` option can be used to specify a remote directory instead of using the current working directory. The command uses Laravel's `FileAnalyzer` class to determine which files to scan for context information. It also uses an instance of `ChatGPT` to gather crucial information from each file to be used as context while writing the README.md file. Finally, the command prompts the user to provide any special instructions and then writes out the complete README.md in markdown format.
 
 ## Contributing
 
-Contributions are welcome! If you have any issues or feature requests, please open an issue on GitHub or submit a pull request. Please make sure to follow the code style of the project when making any contributions.
+If you would like to contribute to this project, please submit a pull request on GitHub or contact the project owner directly.
 
 ## License
 
-This tool is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project is licensed under the MIT license.
 
 ## Credits
 
-This tool was created by the Laravel CLI Tool team and uses several open-source libraries, including:
-- Laravel Zero
-- OpenAI api
-- Composer
+This project was created by Joris Schelfhout. Special thanks to Bit Academy for providing the resources to create this project.

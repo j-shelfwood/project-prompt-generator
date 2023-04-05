@@ -8,9 +8,9 @@ use App\OpenAITokenizer;
 use Illuminate\Console\Scheduling\Schedule;
 use LaravelZero\Framework\Commands\Command;
 
-class AnalyzeProjectCommand extends Command
+class AnalyzeProjectCommand extends ProjectCommand
 {
-    protected $signature = 'analyze';
+    protected $signature = 'analyze {--remote : Use the directories in the PROJECT_DIRECTORY instead of the current working directory}';
 
     protected $description = 'Analyze the current project and show how many tokens each file contains; the character count of each file; and the total number of tokens and characters in the project.';
 
@@ -25,13 +25,16 @@ class AnalyzeProjectCommand extends Command
 
     public function handle()
     {
-        $files = (new FileAnalyzer(getcwd()))
+        $remote = $this->option('remote');
+        $targetDir = $remote ? $this->getProjectDirectory() : getcwd();
+
+        $files = (new FileAnalyzer($targetDir))
             ->getFilesToDescribe();
 
         $fileInfo = [];
         $bar = $this->output->createProgressBar(count($files));
 
-        $fileDescriptions = $this->descriptionStorage->getFileDescriptions(getcwd());
+        $fileDescriptions = $this->descriptionStorage->getFileDescriptions($targetDir);
 
         $concatenatedContent = '';
 

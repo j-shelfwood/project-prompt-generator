@@ -19,11 +19,6 @@ class InstallCommand extends Command
             $this->warn('⚠️  You are running the command in development mode. This is not recommended.');
         }
 
-        // Show current config('database.connections.sqlite.database') value
-        $this->line('📄 Current database file configuration: '.config('database.connections.sqlite.database'));
-        // Show DB_DATABASE value from .env file
-        $this->line('📄 Current database file environment: '.env('DB_DATABASE'));
-
         $homeDir = getenv('HOME') ?: getenv('USERPROFILE');
         $appDir = $homeDir.DIRECTORY_SEPARATOR.'.project-prompt-generator';
 
@@ -35,6 +30,7 @@ class InstallCommand extends Command
 
             $this->createDatabase($appDir);
             $this->createEnvFile($appDir);
+            $this->askForProjectDirectory($appDir);
             $this->migrateDatabase($appDir);
         // } catch (\Exception $e) {
         //     $this->error('Something went wrong, try running the command as an administrator (we have to create 2 files in your app directory)');
@@ -98,7 +94,7 @@ class InstallCommand extends Command
 
             if (! File::exists($envFile)) {
                 $openAiApiKey = $this->ask('Please provide your OpenAI API key:');
-                $envContent = "OPENAI_API_KEY={$openAiApiKey}\nDB_DATABASE={$appDir}/database.sqlite";
+                $envContent = "OPENAI_API_KEY={$openAiApiKey}\nDB_DATABASE={$appDir}/database.sqlite\nPROJECT_DIRECTORY=";
 
                 File::put($envFile, $envContent);
                 File::chmod($envFile, 0755);
@@ -112,18 +108,30 @@ class InstallCommand extends Command
         });
     }
 
+    protected function askForProjectDirectory(string $appDir)
+    {
+        $this->task('Configuring project directory', function () use ($appDir) {
+            $projectDir = $this->ask('Do you want to add a PROJECT_DIRECTORY filepath for use later? (Default: $HOME/projects)');
+            $projectDir = $projectDir ?: getenv('HOME').DIRECTORY_SEPARATOR.'projects';
+
+            if (! empty($projectDir)) {
+                $envFile = $appDir.DIRECTORY_SEPARATOR.'.env';
+                $envContent = File::get($envFile);
+                $envContent .= "{$projectDir}";
+                File::put($envFile, $envContent);
+                File::chmod($envFile, 0755);
+            }
+
+            return true;
+        });
+    }
+
     protected function migrateDatabase(string $appDir)
     {
         $this->task('Migrating the database', function () use ($appDir) {
-            // Show current config('database.connections.sqlite.database') value
-            $this->line('📄 Current database file configuration: '.config('database.connections.sqlite.database'));
-            // Show DB_DATABASE value from .env file
-            $this->line('📄 Current database file environment: '.env('DB_DATABASE'));
             // Load the new .env file
             $dotenv = \Dotenv\Dotenv::createUnsafeImmutable($appDir.DIRECTORY_SEPARATOR, '.env');
             $dotenv->load();
-            // Update config('database.connections.sqlite.database') value
-            // config(['database.connections.sqlite.database' => env('DB_DATABASE')]);
             // Show current config('database.connections.sqlite.database') value
             $this->line('📄 Current database file configuration: '.config('database.connections.sqlite.database'));
             // Show DB_DATABASE value from .env file

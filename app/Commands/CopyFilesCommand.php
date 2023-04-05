@@ -6,14 +6,14 @@ use App\FileAnalyzer;
 use Illuminate\Console\Scheduling\Schedule;
 use LaravelZero\Framework\Commands\Command;
 
-class CopyFilesCommand extends Command
+class CopyFilesCommand extends ProjectCommand
 {
     /**
      * The signature of the command.
      *
      * @var string
      */
-    protected $signature = 'copy:files';
+    protected $signature = 'copy:files {--remote : Use the directories in the PROJECT_DIRECTORY instead of the current working directory}';
 
     /**
      * The description of the command.
@@ -29,7 +29,7 @@ class CopyFilesCommand extends Command
      */
     public function handle()
     {
-        $files = (new FileAnalyzer(getcwd()))
+        $files = (new FileAnalyzer($this->option('remote') ? $this->getProjectDirectory() : getcwd()))
             ->getFilesToDescribe();
 
         // Print the files as a concatenated string

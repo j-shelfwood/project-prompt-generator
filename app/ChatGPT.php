@@ -65,15 +65,18 @@ class ChatGPT
     private function trimMessagesToFit(): void
     {
         $totalTokens = OpenAITokenizer::count($this->messages->pluck('content')->implode(' '));
-
+        echo PHP_EOL.'🔎 Total tokens: '.$totalTokens.PHP_EOL;
         while ($totalTokens > config('openai.max_tokens')) {
             echo '⚠️ Removing context from 1 message to abide by token limit ('.$this->messages->count().' left)'.PHP_EOL;
             // Remove the a message from the $this->messages collection and recalculate the total tokens
             $this->messages->shift();
 
             $totalTokens = OpenAITokenizer::count($this->messages);
+
+            if ($totalTokens < config('openai.max_tokens')) {
+                echo PHP_EOL.'✅ Token limit is not exceeded with '.$this->messages->count().' messages left'.PHP_EOL.PHP_EOL;
+            }
         }
-        echo PHP_EOL.'✅ Token limit is not exceeded with '.$this->messages->count().' messages left'.PHP_EOL.PHP_EOL;
     }
 
     private function getChatResponse(): array
@@ -93,6 +96,8 @@ class ChatGPT
 
     public function receive(): string
     {
+        echo '✉️ Response: '.$this->messages->last()['content'].PHP_EOL;
+
         return $this->messages->last()['content'];
     }
 }

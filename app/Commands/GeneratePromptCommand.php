@@ -6,23 +6,23 @@ use App\Describer;
 use App\DescriptionStorage;
 use App\FileAnalyzer;
 use App\OpenAITokenizer;
-use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
-class GeneratePromptCommand extends Command
+class GeneratePromptCommand extends ProjectCommand
 {
-    protected $signature = 'generate';
+    protected $signature = 'generate {--remote : Use the directories in the PROJECT_DIRECTORY instead of the current working directory}';
 
     protected $description = 'Generate AI-readable context prompt for a Laravel project';
 
     public function handle()
     {
-        $projectDirectory = getcwd();
+        $remote = $this->option('remote');
+        $targetDir = $remote ? $this->getProjectDirectory() : getcwd();
 
-        $project = DB::table('projects')->where('path', $projectDirectory)->first();
-        $projectId = $project ? $project->id : DB::table('projects')->insertGetId(['path' => $projectDirectory]);
+        $project = DB::table('projects')->where('path', $targetDir)->first();
+        $projectId = $project ? $project->id : DB::table('projects')->insertGetId(['path' => $targetDir]);
 
-        $fileAnalyzer = new FileAnalyzer($projectDirectory);
+        $fileAnalyzer = new FileAnalyzer($targetDir);
         $describer = new Describer();
         $descriptionStorage = new DescriptionStorage();
 
@@ -30,7 +30,7 @@ class GeneratePromptCommand extends Command
         $this->line('');
 
         $this->renderMessage('📁 Project directory: ', false);
-        $this->renderMessage("{$projectDirectory}", true);
+        $this->renderMessage("{$targetDir}", true);
         $this->line('');
 
         $filesToDescribe = $fileAnalyzer->getFilesToDescribe();

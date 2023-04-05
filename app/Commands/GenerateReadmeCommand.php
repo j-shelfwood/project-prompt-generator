@@ -7,16 +7,15 @@ use App\FileAnalyzer;
 use App\Handlers\PHPFileHandler;
 use App\OpenAITokenizer;
 use Illuminate\Console\Scheduling\Schedule;
-use LaravelZero\Framework\Commands\Command;
 
-class GenerateReadmeCommand extends Command
+class GenerateReadmeCommand extends ProjectCommand
 {
     /**
      * The signature of the command.
      *
      * @var string
      */
-    protected $signature = 'readme';
+    protected $signature = 'readme {--remote : Use the directories in the PROJECT_DIRECTORY instead of the current working directory}';
 
     /**
      * The description of the command.
@@ -48,7 +47,7 @@ class GenerateReadmeCommand extends Command
     {
         $this->task('Determining which files to scan for context', function () {
             // Get all the filepaths from FileAnalyzer
-            $this->files = (new FileAnalyzer(getcwd()))
+            $this->files = (new FileAnalyzer($this->option('remote') ? $this->getProjectDirectory() : getcwd()))
                 ->getFilesToDescribe();
 
             return true;

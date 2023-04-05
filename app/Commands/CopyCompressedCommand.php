@@ -7,14 +7,14 @@ use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\DB;
 use LaravelZero\Framework\Commands\Command;
 
-class CopyCompressedCommand extends Command
+class CopyCompressedCommand extends ProjectCommand
 {
     /**
      * The signature of the command.
      *
      * @var string
      */
-    protected $signature = 'copy:compressed';
+    protected $signature = 'copy:compressed {--remote : Use the directories in the PROJECT_DIRECTORY instead of the current working directory}';
 
     /**
      * The description of the command.
@@ -30,9 +30,10 @@ class CopyCompressedCommand extends Command
      */
     public function handle()
     {
-        $projectDirectory = getcwd();
+        $remote = $this->option('remote');
+        $targetDir = $remote ? $this->getProjectDirectory() : getcwd();
 
-        $project = DB::table('projects')->where('path', $projectDirectory)->first();
+        $project = DB::table('projects')->where('path', $targetDir)->first();
 
         if (! $project) {
             $this->error('The current directory is not recognized as a project.');
@@ -40,7 +41,7 @@ class CopyCompressedCommand extends Command
             return;
         }
 
-        $files = (new DescriptionStorage)->getFileDescriptions($projectDirectory);
+        $files = (new DescriptionStorage)->getFileDescriptions($targetDir);
 
         $compressedDescriptions = collect($files)->map(function ($file) {
             return $file->description;
