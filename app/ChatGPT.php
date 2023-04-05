@@ -31,6 +31,11 @@ class ChatGPT
             'content' => $message,
         ]);
 
+        // If the message itself is too large
+        if (OpenAITokenizer::count($message) > config('openai.max_tokens')) {
+            throw new \Exception('Message is too large');
+        }
+
         $this->trimMessagesToFit();
 
         $message = $this->getChatResponse();
@@ -59,11 +64,14 @@ class ChatGPT
 
     private function trimMessagesToFit(): void
     {
-        $maxTokens = config('openai.max_tokens');
-        $totalTokens = OpenAITokenizer::count($this->messages);
+        $totalTokens = OpenAITokenizer::count($this->messages->pluck('content')->implode(' '));
 
-        while ($totalTokens > $maxTokens) {
+        while ($totalTokens > config('openai.max_tokens')) {
+            echo 'shifting messages to fit'.PHP_EOL;
+            // Remove the a message from the $this->messages collection and recalculate the total tokens
             $this->messages->shift();
+            echo 'shifted (items left:'.$this->messages->count().PHP_EOL;
+
             $totalTokens = OpenAITokenizer::count($this->messages);
         }
     }

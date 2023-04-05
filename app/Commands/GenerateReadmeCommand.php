@@ -48,11 +48,8 @@ class GenerateReadmeCommand extends Command
     {
         $this->task('Determining which files to scan for context', function () {
             // Get all the filepaths from FileAnalyzer
-            $this->files = (new FileAnalyzer(getcwd()))->getFilesToDescribe();
-            //
-            // $chat->send('What files do you want to read? '.$files->implode(', '));
-
-            // $message = $chat->receive();
+            $this->files = (new FileAnalyzer(getcwd()))
+                ->getFilesToDescribe();
 
             return true;
         });
@@ -65,18 +62,16 @@ class GenerateReadmeCommand extends Command
         });
 
         $this->task('Collecting crucial information from every file to be used for context while writing the README.md file', function () {
-            $progressBar = $this->output->createProgressBar(count($this->files));
-
-            $this->context = $this->files->map(function ($file) use ($progressBar) {
+            $this->context = $this->files->map(function ($file) {
                 $content = (new PHPFileHandler($file))
                     ->strippedContent();
 
                 $response = $this->chat->send('Extract info from '.$file.':'.$content)->receive();
 
-                $progressBar->advance();
                 $this->chat->reset();
 
                 $this->chat->system($this->instructions.$response);
+                $this->comment("Extracted information from: {$file}");
 
                 return [
                     'path' => $file,
