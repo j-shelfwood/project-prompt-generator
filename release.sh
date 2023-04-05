@@ -57,10 +57,13 @@ git tag "$new_version"
 # Push the changes and the new tag to the main branch
 git push --progress origin main &
 wait $!
+echo "Changes pushed successfully!"
 git push --progress origin "$new_version" &
 wait $!
+echo "Changes pushed to version branch"
 git push --progress --tags &
 wait $!
+echo "Tag pushed successfully!"
 
 # Ask the user if they want to publish the release
 echo "Release pushed successfully!"
