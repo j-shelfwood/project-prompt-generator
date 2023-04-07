@@ -33,7 +33,7 @@ class GenerateReadmeCommand extends ProjectCommand
     protected $instructions = 'You are an expert at writing README.md files for projects.
      You are allowed to view each file of the project;
      one at a time.
-     You will ONLY RESPOND with any crucial information someone else (A generative AI) would need to write a good README.md.
+     You will ONLY RESPOND with any crucial information someone else (A generative AI) would need to write a good README.md. When a class contains very little logic or is very close/identical to a framework default; SKIP IT (by replying SKIPPED).
      Be very concise and refrain from writing anything that is not crucial. Every character counts. The AI can figure it out. Used classes are not crucial, command signatures and usage are.
      Any previous conversations where you extracted information I will provide below:
      ';

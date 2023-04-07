@@ -84,6 +84,7 @@ class ChatGPT
         return Cache::rememberForever(md5($this->messages->implode('content')), function () {
             $response = $this->client->chat()->create([
                 'model' => config('openai.model_used'),
+                'temperature' => config('openai.temperature'),
                 'messages' => $this->messages->toArray(),
             ]);
 
