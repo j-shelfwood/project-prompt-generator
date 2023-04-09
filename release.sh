@@ -42,12 +42,19 @@ fi
 
 # Generate a new build using the new version
 echo "Building new version: $new_version"
-php prompt app:build --build-version="$new_version" &
+php prompt app:build --build-version=$new_version &
 wait $!
 
 # Ask the user if they want to continue with the release
 echo "New version built successfully!"
 read -p "Do you want to continue with the release? [y/n] " -n 1 -r
+
+# If the user doesn't want to continue, exit the script
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+  echo
+  echo "Release aborted!"
+  exit 1
+fi
 
 # Commit the changes and create a git tag
 git add .
