@@ -28,12 +28,24 @@ class InfoCommand extends Command
      */
     public function handle()
     {
-        $dbConnection = config('database.connections.sqlite.database');
-        $envFilePath = app()->environmentFilePath();
         $appEnv = config('app.env');
-        $this->info("Current app_env value: {$appEnv}");
-        $this->info("SQLite database file: {$dbConnection}");
-        $this->info(".env file path: {$envFilePath}");
+        $dbConfig = config('database.connections.sqlite.database');
+        $envFilePath = app()->environmentFilePath();
+        $getenvPath = getenv('HOME') ?: getenv('USERPROFILE');
+        $openAiApiKey = config('openai.api_key');
+        $openaiApiKeyEnv = env('OPENAI_API_KEY', 'NOT FOUND');
+
+        $this->table(
+            ['Name', 'Value'],
+            [
+                ['Environment', $appEnv],
+                ['Database', $dbConfig],
+                ['Environment File', $envFilePath],
+                ['Getenv Path', $getenvPath],
+                ['OpenAI API Key', $openAiApiKey],
+                ['OpenAI API Key from env', $openaiApiKeyEnv],
+            ]
+        );
     }
 
     /**

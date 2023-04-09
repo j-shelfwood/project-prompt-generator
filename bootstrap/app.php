@@ -15,6 +15,20 @@ $app = new LaravelZero\Framework\Application(
     dirname(__DIR__)
 );
 
+$homeDir = getenv('HOME') ?: getenv('USERPROFILE');
+$appDir = $homeDir.DIRECTORY_SEPARATOR.'.project-prompt-generator';
+$envPath = $appDir.DIRECTORY_SEPARATOR.'.env';
+
+if (file_exists($envPath)) {
+    $app->useEnvironmentPath($appDir);
+} else {
+    $app->useEnvironmentPath($app->basePath());
+}
+
+$env = $app->detectEnvironment(function () use ($app, $envPath) {
+    return file_exists($envPath) ? 'production' : $app->environment();
+});
+
 /*
 |--------------------------------------------------------------------------
 | Bind Important Interfaces

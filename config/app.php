@@ -68,7 +68,5 @@ return [
 
     'providers' => [
         App\Providers\AppServiceProvider::class,
-        App\Providers\EnvServiceProvider::class,
     ],
-
 ];
