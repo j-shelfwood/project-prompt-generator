@@ -23,18 +23,14 @@ class InstallCommand extends Command
         $appDir = $homeDir.DIRECTORY_SEPARATOR.'.project-prompt-generator';
 
         $this->line("📁 App directory: {$appDir}");
-        // try {
-            if ($this->checkForExistingFiles($appDir)) {
-                return;
-            }
 
-            $this->createDatabase($appDir);
-            $this->createEnvFile($appDir);
-            $this->askForProjectDirectory($appDir);
-            $this->migrateDatabase($appDir);
-        // } catch (\Exception $e) {
-        //     $this->error('Something went wrong, try running the command as an administrator (we have to create 2 files in your app directory)');
-        // }
+        if ($this->checkForExistingFiles($appDir)) {
+            return;
+        }
+
+        $this->createDatabase($appDir);
+        $this->createEnvFile($appDir);
+        $this->migrateDatabase($appDir);
     }
 
     protected function checkForExistingFiles(string $appDir): bool
@@ -50,23 +46,38 @@ class InstallCommand extends Command
                 File::delete($envFile);
                 File::deleteDirectory($appDir);
             } else {
-                $this->line('Installation canceled.');
+                $this->line(PHP_EOL.'Installation canceled.');
 
                 return true;
             }
         }
 
-        // Create the app directory if it doesn't exist
+        $this->createAppDirectory($appDir);
+        $this->createDatabaseDirectory($appDir);
+        $this->createCacheDirectory($appDir);
+
+        return false;
+    }
+
+    protected function createAppDirectory(string $appDir)
+    {
         if (! File::exists($appDir)) {
             File::makeDirectory($appDir, 0755);
         }
+    }
 
-        // Create the database directory if it doesn't exist
+    protected function createDatabaseDirectory(string $appDir)
+    {
         if (! File::exists($appDir.DIRECTORY_SEPARATOR.'database')) {
             File::makeDirectory($appDir.DIRECTORY_SEPARATOR.'database', 0755);
         }
+    }
 
-        return false;
+    protected function createCacheDirectory(string $appDir)
+    {
+        if (! File::exists($appDir.DIRECTORY_SEPARATOR.'cache')) {
+            File::makeDirectory($appDir.DIRECTORY_SEPARATOR.'cache', 0755);
+        }
     }
 
     protected function createDatabase(string $appDir)
@@ -74,13 +85,7 @@ class InstallCommand extends Command
         $this->task('Creating database.sqlite file', function () use ($appDir) {
             $databaseFile = $appDir.DIRECTORY_SEPARATOR.'database'.DIRECTORY_SEPARATOR.'database.sqlite';
 
-            $this->line("📄 Database file: {$databaseFile}");
-
-            if (File::exists($databaseFile)) {
-                $this->line('ℹ️  database.sqlite file already exists.');
-
-                return false;
-            }
+            $this->line(PHP_EOL."📄 Database file: {$databaseFile}");
 
             File::put($databaseFile, '');
             File::chmod($databaseFile, 0755);
@@ -94,11 +99,14 @@ class InstallCommand extends Command
         $this->task('Creating .env file', function () use ($appDir) {
             $envFile = $appDir.DIRECTORY_SEPARATOR.'.env';
 
-            $this->line("📄 .env file: {$envFile}");
+            $this->line(PHP_EOL."📄 .env file: {$envFile}");
 
-            if (! File::exists($envFile)) {
+                        if (! File::exists($envFile)) {
                 $openAiApiKey = $this->ask('Please provide your OpenAI API key:');
-                $envContent = "OPENAI_API_KEY={$openAiApiKey}\nPROJECT_DIRECTORY=";
+                $projectDir = $this->ask('Do you want to add a PROJECT_DIRECTORY filepath for use later? (Default: $HOME/projects)');
+                $projectDir = $projectDir ?: getenv('HOME').DIRECTORY_SEPARATOR.'projects';
+
+                $envContent = "CACHE_FOLDER=$appDir/cache\nOPENAI_API_KEY={$openAiApiKey}\nPROJECT_DIRECTORY={$projectDir}";
 
                 File::put($envFile, $envContent);
                 File::chmod($envFile, 0755);
@@ -112,24 +120,6 @@ class InstallCommand extends Command
         });
     }
 
-    protected function askForProjectDirectory(string $appDir)
-    {
-        $this->task('Configuring project directory', function () use ($appDir) {
-            $projectDir = $this->ask('Do you want to add a PROJECT_DIRECTORY filepath for use later? (Default: $HOME/projects)');
-            $projectDir = $projectDir ?: getenv('HOME').DIRECTORY_SEPARATOR.'projects';
-
-            if (! empty($projectDir)) {
-                $envFile = $appDir.DIRECTORY_SEPARATOR.'.env';
-                $envContent = File::get($envFile);
-                $envContent .= "{$projectDir}";
-                File::put($envFile, $envContent);
-                File::chmod($envFile, 0755);
-            }
-
-            return true;
-        });
-    }
-
     protected function migrateDatabase(string $appDir)
     {
         $this->task('Migrating the database', function () use ($appDir) {
@@ -137,7 +127,7 @@ class InstallCommand extends Command
             $dotenv = \Dotenv\Dotenv::createUnsafeImmutable($appDir.DIRECTORY_SEPARATOR, '.env');
             $dotenv->load();
             // Show current config('database.connections.sqlite.database') value
-            $this->line('📄 Current database file configuration: '.config('database.connections.sqlite.database').PHP_EOL);
+            $this->line(PHP_EOL.'📄 Current database file configuration: '.config('database.connections.sqlite.database').PHP_EOL);
             Artisan::call('migrate', ['--force' => true]);
 
             return true;

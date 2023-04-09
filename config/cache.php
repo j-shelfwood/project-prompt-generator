@@ -6,7 +6,7 @@ return [
     'stores' => [
         'file' => [
             'driver' => 'file',
-            'path' => storage_path('framework/cache/data'),
+            'path' => env('CACHE_FOLDER', storage_path('framework/cache/data')),
         ],
     ],
 ];

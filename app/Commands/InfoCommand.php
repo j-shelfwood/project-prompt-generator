@@ -4,7 +4,6 @@ namespace App\Commands;
 
 use Illuminate\Console\Scheduling\Schedule;
 use LaravelZero\Framework\Commands\Command;
-use Phar;
 
 class InfoCommand extends Command
 {
@@ -38,8 +37,7 @@ class InfoCommand extends Command
                 ['Getenv Path', getenv('HOME') ?: getenv('USERPROFILE')],
                 ['OpenAI API Key', config('openai.api_key')],
                 ['OpenAI API Key from env', env('OPENAI_API_KEY')],
-                ['Phar::running', Phar::running(true)],
-                ['Phar::running(false)', Phar::running(true)],
+                ['cache folder', config('cache.stores.file.path')],
             ],
         );
     }
