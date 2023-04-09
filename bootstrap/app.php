@@ -15,19 +15,24 @@ $app = new LaravelZero\Framework\Application(
     dirname(__DIR__)
 );
 
-$homeDir = getenv('HOME') ?: getenv('USERPROFILE');
-$appDir = $homeDir.DIRECTORY_SEPARATOR.'.project-prompt-generator';
-$envPath = $appDir.DIRECTORY_SEPARATOR.'.env';
+$pharRunning = Phar::running(false);
 
-if (file_exists($envPath)) {
-    $app->useEnvironmentPath($appDir);
+if (! empty($pharRunning)) {
+    $homeDir = getenv('HOME') ?: getenv('USERPROFILE');
+    $appDir = $homeDir.DIRECTORY_SEPARATOR.'.project-prompt-generator';
+    $envPath = $appDir.DIRECTORY_SEPARATOR.'.env';
+
+    if (file_exists($envPath)) {
+        // Load the .env file from the home directory.
+        $app->useEnvironmentPath($appDir);
+    } else {
+        // Use the default .env selection logic.
+        $app->useEnvironmentPath($app->basePath());
+    }
 } else {
+    // Use the default .env selection logic.
     $app->useEnvironmentPath($app->basePath());
 }
-
-$env = $app->detectEnvironment(function () use ($app, $envPath) {
-    return file_exists($envPath) ? 'production' : $app->environment();
-});
 
 /*
 |--------------------------------------------------------------------------

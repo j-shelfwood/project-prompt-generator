@@ -4,6 +4,7 @@ namespace App\Commands;
 
 use Illuminate\Console\Scheduling\Schedule;
 use LaravelZero\Framework\Commands\Command;
+use Phar;
 
 class InfoCommand extends Command
 {
@@ -28,23 +29,18 @@ class InfoCommand extends Command
      */
     public function handle()
     {
-        $appEnv = config('app.env');
-        $dbConfig = config('database.connections.sqlite.database');
-        $envFilePath = app()->environmentFilePath();
-        $getenvPath = getenv('HOME') ?: getenv('USERPROFILE');
-        $openAiApiKey = config('openai.api_key');
-        $openaiApiKeyEnv = env('OPENAI_API_KEY', 'NOT FOUND');
-
         $this->table(
             ['Name', 'Value'],
             [
-                ['Environment', $appEnv],
-                ['Database', $dbConfig],
-                ['Environment File', $envFilePath],
-                ['Getenv Path', $getenvPath],
-                ['OpenAI API Key', $openAiApiKey],
-                ['OpenAI API Key from env', $openaiApiKeyEnv],
-            ]
+                ['Environment', config('app.env')],
+                ['Database', config('database.connections.sqlite.database')],
+                ['Environment File', app()->environmentFilePath()],
+                ['Getenv Path', getenv('HOME') ?: getenv('USERPROFILE')],
+                ['OpenAI API Key', config('openai.api_key')],
+                ['OpenAI API Key from env', env('OPENAI_API_KEY')],
+                ['Phar::running', Phar::running(true)],
+                ['Phar::running(false)', Phar::running(true)],
+            ],
         );
     }
 
