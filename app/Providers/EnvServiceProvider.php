@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Dotenv\Dotenv;
 use Illuminate\Support\ServiceProvider;
 
 class EnvServiceProvider extends ServiceProvider
@@ -19,7 +20,7 @@ class EnvServiceProvider extends ServiceProvider
             $envPath = $appDir.DIRECTORY_SEPARATOR.'.env';
 
             if (file_exists($envPath)) {
-                $dotenv = Dotenv\Dotenv::createUnsafeImmutable($appDir, '.env');
+                $dotenv = Dotenv::createImmutable($appDir, '.env');
                 $dotenv->load();
             }
         }

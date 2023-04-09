@@ -72,7 +72,7 @@ class InstallCommand extends Command
     protected function createDatabase(string $appDir)
     {
         $this->task('Creating database.sqlite file', function () use ($appDir) {
-            $databaseFile = $appDir.DIRECTORY_SEPARATOR.'database.sqlite';
+            $databaseFile = $appDir.DIRECTORY_SEPARATOR.'database'.DIRECTORY_SEPARATOR.'database.sqlite';
 
             $this->line("📄 Database file: {$databaseFile}");
 

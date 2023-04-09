@@ -38,7 +38,7 @@ return [
         'sqlite' => [
             'driver' => 'sqlite',
             'url' => env('DATABASE_URL'),
-            'database' => 'database/database.sqlite',
+            'database' => env('DB_DATABASE', (getenv('HOME') ?: getenv('USERPROFILE')).DIRECTORY_SEPARATOR.'.project-prompt-generator'.DIRECTORY_SEPARATOR.'database'.DIRECTORY_SEPARATOR.'database.sqlite'),
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
         ],
