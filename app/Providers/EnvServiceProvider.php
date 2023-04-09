@@ -16,11 +16,10 @@ class EnvServiceProvider extends ServiceProvider
         if ($this->app->environment('production')) {
             $homeDir = getenv('HOME') ?: getenv('USERPROFILE');
             $appDir = $homeDir.DIRECTORY_SEPARATOR.'.project-prompt-generator';
-
             $envPath = $appDir.DIRECTORY_SEPARATOR.'.env';
 
             if (file_exists($envPath)) {
-                $dotenv = \Dotenv\Dotenv::createUnsafeImmutable($appDir, '.env');
+                $dotenv = Dotenv\Dotenv::createUnsafeImmutable($appDir, '.env');
                 $dotenv->load();
             }
         }

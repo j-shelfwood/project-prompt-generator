@@ -16,7 +16,7 @@ class InstallCommand extends Command
     {
         // If env = development show warning
         if (env('APP_ENV') === 'development') {
-            $this->warn('⚠️  You are running the command in development mode. This is not recommended.');
+            $this->warn(PHP_EOL.'⚠️  You are running the command in development mode. This is not recommended.'.PHP_EOL);
         }
 
         $homeDir = getenv('HOME') ?: getenv('USERPROFILE');
@@ -39,7 +39,7 @@ class InstallCommand extends Command
 
     protected function checkForExistingFiles(string $appDir): bool
     {
-        $databaseFile = $appDir.DIRECTORY_SEPARATOR.'database.sqlite';
+        $databaseFile = $appDir.DIRECTORY_SEPARATOR.'database'.DIRECTORY_SEPARATOR.'database.sqlite';
         $envFile = $appDir.DIRECTORY_SEPARATOR.'.env';
 
         if (File::exists($databaseFile) || File::exists($envFile)) {
@@ -58,8 +58,12 @@ class InstallCommand extends Command
 
         // Create the app directory if it doesn't exist
         if (! File::exists($appDir)) {
-            File::makeDirectory($appDir);
-            File::chmod($appDir, 0775);
+            File::makeDirectory($appDir, 0755);
+        }
+
+        // Create the database directory if it doesn't exist
+        if (! File::exists($appDir.DIRECTORY_SEPARATOR.'database')) {
+            File::makeDirectory($appDir.DIRECTORY_SEPARATOR.'database', 0755);
         }
 
         return false;
@@ -94,7 +98,7 @@ class InstallCommand extends Command
 
             if (! File::exists($envFile)) {
                 $openAiApiKey = $this->ask('Please provide your OpenAI API key:');
-                $envContent = "OPENAI_API_KEY={$openAiApiKey}\nDB_DATABASE={$appDir}/database.sqlite\nPROJECT_DIRECTORY=";
+                $envContent = "OPENAI_API_KEY={$openAiApiKey}\nPROJECT_DIRECTORY=";
 
                 File::put($envFile, $envContent);
                 File::chmod($envFile, 0755);
@@ -133,9 +137,7 @@ class InstallCommand extends Command
             $dotenv = \Dotenv\Dotenv::createUnsafeImmutable($appDir.DIRECTORY_SEPARATOR, '.env');
             $dotenv->load();
             // Show current config('database.connections.sqlite.database') value
-            $this->line('📄 Current database file configuration: '.config('database.connections.sqlite.database'));
-            // Show DB_DATABASE value from .env file
-            $this->line('📄 Current database file environment: '.env('DB_DATABASE'));
+            $this->line('📄 Current database file configuration: '.config('database.connections.sqlite.database').PHP_EOL);
             Artisan::call('migrate', ['--force' => true]);
 
             return true;
