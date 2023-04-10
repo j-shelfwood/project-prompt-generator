@@ -81,6 +81,8 @@ class CustomFilterIterator extends RecursiveFilterIterator
                 'bower_components',
                 'storage',
                 'bootstrap/cache',
+                'tests',
+                'config',
             ]);
         }
 
