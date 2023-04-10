@@ -8,6 +8,11 @@ abstract class ProjectCommand extends Command
 {
     protected function getProjectDirectory(): string
     {
+        // If the env REMOTE is set, use it
+        if (env('REMOTE')) {
+            return env('REMOTE');
+        }
+
         $projectDirectory = env('PROJECT_DIRECTORY');
         if (! $projectDirectory) {
             $this->error('PROJECT_DIRECTORY is not set in the .env file.');
