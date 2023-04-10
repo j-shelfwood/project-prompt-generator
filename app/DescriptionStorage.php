@@ -18,7 +18,14 @@ class DescriptionStorage
 
     public function getFileDescriptions($projectPath)
     {
-        $projectId = DB::table('projects')->where('path', $projectPath)->first()->id;
+        // Check if the project exists; if not create it
+        $project = DB::table('projects')->where('path', $projectPath)->first();
+
+        if (! $project) {
+            $projectId = DB::table('projects')->insertGetId(['path' => $projectPath]);
+        } else {
+            $projectId = $project->id;
+        }
 
         return DB::table('files')->where('project_id', $projectId)->get()->toArray();
     }
