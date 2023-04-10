@@ -2,12 +2,17 @@
 
 namespace App;
 
+use FilesystemIterator;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
+use RecursiveDirectoryIterator;
+use RecursiveFilterIterator;
+use RecursiveIteratorIterator;
 
 class FileAnalyzer
 {
     protected $directory;
+
+    protected $type;
 
     public function __construct($directory)
     {
@@ -16,37 +21,69 @@ class FileAnalyzer
 
     public function getFilesToDescribe(): Collection
     {
-        $files = [];
+        return $this->getCode();
+    }
 
-        // All the files in the app directory recursively (except for the exceptions)
-        $files = array_merge($files, glob($this->directory.'/app/**/*.php', GLOB_BRACE));
-        // And also the files in the app directory itself
-        $files = array_merge($files, glob($this->directory.'/app/*.php'));
+    protected function getCode(): Collection
+    {
+        $extension = $this->pickMostUsedFileExtension();
 
-        // database/migrations
-        $files = array_merge($files, glob($this->directory.'/database/migrations/*.php'));
+        $directoryIterator = new RecursiveDirectoryIterator($this->directory, FilesystemIterator::SKIP_DOTS);
+        $filterIterator = new CustomFilterIterator($directoryIterator);
 
-        // resources/views
-        $files = array_merge($files, glob($this->directory.'/resources/views/**/*.php', GLOB_BRACE));
+        $iterator = new RecursiveIteratorIterator($filterIterator, RecursiveIteratorIterator::SELF_FIRST);
 
-        // routes/web.php && routes/api.php
-        // Only if this project has them
-        if (file_exists($this->directory.'/routes/web.php')) {
-            $files[] = $this->directory.'/routes/web.php';
+        $files = collect();
+        foreach ($iterator as $file) {
+            if ($file->isFile() && pathinfo($file, PATHINFO_EXTENSION) === $extension) {
+                $contents = file_get_contents($file->getPathname());
+                if (strpos($contents, '@ignore') === false) {
+                    $files->push($file->getPathname());
+                }
+            }
         }
-        if (file_exists($this->directory.'/routes/api.php')) {
-            $files[] = $this->directory.'/routes/api.php';
+
+        return $files;
+    }
+
+    protected function pickMostUsedFileExtension(): string
+    {
+        $directoryIterator = new RecursiveDirectoryIterator($this->directory, FilesystemIterator::SKIP_DOTS);
+        $iterator = new RecursiveIteratorIterator($directoryIterator, RecursiveIteratorIterator::SELF_FIRST);
+
+        $extensions = collect();
+        foreach ($iterator as $file) {
+            if ($file->isFile()) {
+                $extensions->push(pathinfo($file, PATHINFO_EXTENSION));
+            }
         }
 
-        // Remove files ending in .blade.php
-        $filteredFiles = collect($files)->filter(function ($file) {
-            return ! Str::of($file)->contains('.blade.php');
-        });
-        // Check if the content of the file contains //@ignore or if the file is ./app/OpenAITokenizer.php
-        return $filteredFiles->filter(function ($file) {
-            $ignoringFile = Str::of(file_get_contents($file))->contains('//'.'@ignore') || $file === $this->directory.'/app/OpenAITokenizer.php';
+        return $extensions->filter(function ($extension) {
+            return $extension !== '';
+        })->groupBy(function ($extension) {
+            return $extension;
+        })->map(function ($group) {
+            return $group->count();
+        })->sortDesc()->keys()->first();
+    }
+}
 
-            return ! $ignoringFile;
-        });
+class CustomFilterIterator extends RecursiveFilterIterator
+{
+    public function accept(): bool
+    {
+        $filename = $this->current()->getFilename();
+        if ($this->hasChildren()) {
+            return ! in_array($filename, [
+                'vendor',
+                'node_modules',
+                'site-packages',
+                'bower_components',
+                'storage',
+                'bootstrap/cache',
+            ]);
+        }
+
+        return true;
     }
 }
