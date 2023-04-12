@@ -3,9 +3,9 @@
 namespace App\Commands;
 
 use App\ChatGPT;
-use App\FileAnalyzer;
+use App\Scan\FileAnalyzer;
 use App\Handlers\PHPFileHandler;
-use App\OpenAITokenizer;
+use App\Helpers\OpenAITokenizer;
 use Illuminate\Console\Scheduling\Schedule;
 
 class GenerateReadmeCommand extends ProjectCommand
@@ -33,9 +33,12 @@ class GenerateReadmeCommand extends ProjectCommand
     protected $instructions = 'You are an expert at writing README.md files for projects.
      You are allowed to view each file of the project;
      one at a time.
-     You will ONLY RESPOND with any crucial information someone else (A generative AI) would need to write a good README.md. When a class contains very little logic or is very close/identical to a framework default; SKIP IT (by replying SKIPPED).
-     Be very concise and refrain from writing anything that is not crucial. Every character counts. The AI can figure it out. Used classes are not crucial, command signatures and usage are.
-     Any previous conversations where you extracted information I will provide below:
+     You will ONLY RESPOND with any crucial information someone else (A generative AI) would need to write a good README.md for the project. You extract information relevant to features, installation & usage.
+
+     [EXAMPLE OUTPUT:package.json or similar]
+     composer.json: the project is a laravel project called shelfwood/prj-blog. It is using X and Y packages other than the defaults that come with laravel.
+     [EXAMPLE OUTPUT:php file]
+     routes/web.php: the project has routes for showing a list of posts, showing a single post, and creating a new post. You can also delete a post.
      ';
 
     /**
@@ -48,14 +51,14 @@ class GenerateReadmeCommand extends ProjectCommand
         $this->task('Determining which files to scan for context', function () {
             // Get all the filepaths from FileAnalyzer
             $this->files = (new FileAnalyzer($this->option('remote') ? $this->getProjectDirectory() : getcwd()))
-                ->getFilesToDescribe();
+                ->scan();
 
             return true;
         });
 
         $this->task('Preparing & instructing ChatGPT to scan files for context', function () {
             $this->chat = (new ChatGPT())
-                ->system($this->instructions.'NONE YET');
+                ->system($this->instructions . 'NONE YET');
 
             return true;
         });
@@ -65,11 +68,11 @@ class GenerateReadmeCommand extends ProjectCommand
                 $content = (new PHPFileHandler($file))
                     ->strippedContent();
 
-                $response = $this->chat->send('Extract info from '.$file.':'.$content)->receive();
+                $response = $this->chat->send('Extract info from ' . $file . ':' . $content)->receive();
 
                 $this->chat->reset();
 
-                $this->chat->system($this->instructions.$response);
+                $this->chat->system($this->instructions . $response);
                 $this->comment("Extracted information from: {$file}");
 
                 return [
@@ -81,7 +84,7 @@ class GenerateReadmeCommand extends ProjectCommand
 
             $tokenCount = OpenAITokenizer::count($this->context->pluck('response')->implode(' '));
 
-            $this->info('Total token count: '.$tokenCount);
+            $this->info('Total token count: ' . $tokenCount);
 
             return true;
         });
@@ -101,12 +104,12 @@ class GenerateReadmeCommand extends ProjectCommand
             [CONTEXT] $context
             [ADDITIONAL INSTRUCTIONS] $specialInstructions
 
-            Write out the complete readme.md in markdown format; ONLY RESPOND WITH THE README.MD CONTENT.:
+            Write out the readme.md for the provided project context in markdown format; ONLY RESPOND WITH THE README.MD CONTENT.:
             ");
 
             $readme = $this->chat->receive();
 
-            file_put_contents('README.md', $readme);
+            file_put_contents($this->option('remote') ? $this->getProjectDirectory() . '/README.md' : getcwd() . '/README.md', $readme);
 
             return true;
         });

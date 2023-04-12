@@ -3,7 +3,7 @@
 namespace App\Commands;
 
 use App\DescriptionStorage;
-use App\OpenAITokenizer;
+use App\Helpers\OpenAITokenizer;
 use Illuminate\Support\Facades\DB;
 
 class CopyCodeCommand extends ProjectCommand
@@ -16,7 +16,7 @@ class CopyCodeCommand extends ProjectCommand
     {
         $project = DB::table('projects')->where('path', $this->option('remote') ? $this->getProjectDirectory() : getcwd())->first();
 
-        if (! $project) {
+        if (!$project) {
             $this->error('The current directory is not recognized as a project.');
 
             return;

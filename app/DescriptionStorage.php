@@ -21,7 +21,7 @@ class DescriptionStorage
         // Check if the project exists; if not create it
         $project = DB::table('projects')->where('path', $projectPath)->first();
 
-        if (! $project) {
+        if (!$project) {
             $projectId = DB::table('projects')->insertGetId(['path' => $projectPath]);
         } else {
             $projectId = $project->id;
@@ -39,7 +39,7 @@ class DescriptionStorage
     {
         $project = DB::table('projects')->where('path', $projectPath)->first();
 
-        if (! $project) {
+        if (!$project) {
             return false;
         }
 
@@ -53,13 +53,13 @@ class DescriptionStorage
         $project = DB::table('projects')->where('id', $projectId)->first();
         $files =
             (new FileAnalyzer($project->path))
-                ->getFilesToDescribe()
-                ->map(function ($file) {
-                    return [
-                        'content' => file_get_contents($file),
-                        'path' => $file,
-                    ];
-                })->toArray();
+            ->scan()
+            ->map(function ($file) {
+                return [
+                    'content' => file_get_contents($file),
+                    'path' => $file,
+                ];
+            })->toArray();
 
         $rawCode = '';
 

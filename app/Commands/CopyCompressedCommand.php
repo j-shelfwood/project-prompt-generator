@@ -35,7 +35,7 @@ class CopyCompressedCommand extends ProjectCommand
 
         $project = DB::table('projects')->where('path', $targetDir)->first();
 
-        if (! $project) {
+        if (!$project) {
             $this->error('The current directory is not recognized as a project.');
 
             return;

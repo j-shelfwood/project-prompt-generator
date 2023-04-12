@@ -2,7 +2,7 @@
 
 namespace App\Commands;
 
-use App\FileAnalyzer;
+use App\Scan\FileAnalyzer;
 use Illuminate\Console\Scheduling\Schedule;
 use LaravelZero\Framework\Commands\Command;
 
@@ -30,7 +30,7 @@ class CopyFilesCommand extends ProjectCommand
     public function handle()
     {
         $files = (new FileAnalyzer($this->option('remote') ? $this->getProjectDirectory() : getcwd()))
-            ->getFilesToDescribe();
+            ->scan();
 
         // Print the files as a concatenated string
         $this->info(implode(PHP_EOL, $files->toArray()));

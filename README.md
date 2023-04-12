@@ -20,6 +20,19 @@ This will install the necessary dependencies, create a database, and prompt you 
 
 ## Usage
 
+The .env contains the following variables, the necessary ones are set when running the `prompt install` command:
+
+```
+OPENAI_API_KEY=
+PROJECT_DIRECTORY=
+REMOTE=
+IGNORE_PATHS=/app/Helpers/characters.json
+```
+
+The `REMOTE` variable is used to specify a remote directory to use instead of the current working directory. The `IGNORE_PATHS` variable is used to specify paths to ignore when analyzing files. This is mostly used during development to allow for easily running the tool on other project folders.
+
+The `IGNORE_PATHS` variable can be set to a comma-separated list of file paths to ignore when analyzing files. `database/database.sqlite` is ignored by default.
+
 ### Analyze Project
 
 To analyze the current working directory's files and display counts for tokens and descriptions, use the following command:
@@ -57,14 +70,6 @@ project-cli copy:compressed [--remote]
 ```
 
 The `--remote` option can be used to specify a remote directory instead of using the current working directory.
-
-### Generate Command
-
-To generate AI-readable context prompts for a Laravel project and store them in a database, use the following command:
-
-```
-project-cli generate [--remote]
-```
 
 The `--remote` option can be used to specify a remote directory instead of using the current working directory.
 

@@ -3,8 +3,8 @@
 namespace App\Commands;
 
 use App\DescriptionStorage;
-use App\FileAnalyzer;
-use App\OpenAITokenizer;
+use App\Scan\FileAnalyzer;
+use App\Helpers\OpenAITokenizer;
 use Illuminate\Console\Scheduling\Schedule;
 use LaravelZero\Framework\Commands\Command;
 
@@ -29,7 +29,7 @@ class AnalyzeProjectCommand extends ProjectCommand
         $targetDir = $remote ? $this->getProjectDirectory() : getcwd();
 
         $files = (new FileAnalyzer($targetDir))
-            ->getFilesToDescribe();
+            ->scan();
 
         $fileInfo = [];
         $bar = $this->output->createProgressBar(count($files));
@@ -60,7 +60,7 @@ class AnalyzeProjectCommand extends ProjectCommand
         $this->table(
             ['File', 'Raw token count', 'Description token Count', 'Character count'],
             $files->sortByDesc('token_count')->map(function ($file) {
-                $shortPath = implode('/', array_slice(explode('/', $file['path']), -2));
+                $shortPath = str_replace($this->getProjectDirectory(), '', $file['path']);
 
                 return [
                     $shortPath,
@@ -68,7 +68,8 @@ class AnalyzeProjectCommand extends ProjectCommand
                     $file['description_token_count'],
                     $file['character_count'],
                 ];
-            }));
+            })
+        );
 
         $this->info("Total token count: {$totalTokenCount}");
         $this->info("Total description token count: {$totalDescriptionTokenCount}");
